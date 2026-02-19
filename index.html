@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>簡単見積シミュレーション | DirectCloud</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 14px; scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans JP', 'Hiragino Sans', 'Meiryo', sans-serif;
+      color: #333;
+      background: #fff;
+      line-height: 1.6;
+    }
+    a { color: #0066cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ===== Header ===== */
+    .header {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a3e6e;
+    }
+    .header-logo .logo-mark {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #0055cc, #0088ff);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      font-size: 13px;
+    }
+    .header-nav a { color: #555; }
+    .header-nav a:hover { color: #0066cc; text-decoration: none; }
+    .header-cta {
+      background: #ff6600;
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .header-cta:hover { background: #e55c00; text-decoration: none; color: #fff; }
+
+    /* ===== Language Toggle ===== */
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      background: #f0f4f8;
+      border: 1px solid #d0d5dd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .lang-toggle button {
+      border: none;
+      background: transparent;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+    .lang-toggle button.active {
+      background: #1a3e6e;
+      color: #fff;
+    }
+    .lang-toggle button:not(.active):hover {
+      background: #e0e5ec;
+    }
+
+    /* ===== Breadcrumb ===== */
+    .breadcrumb {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      font-size: 12px;
+      color: #888;
+    }
+    .breadcrumb a { color: #888; }
+
+    /* ===== Hero Banner ===== */
+    .hero {
+      background: linear-gradient(135deg, #e8f0fe 0%, #d4e4fc 100%);
+      padding: 48px 20px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a3e6e;
+      margin-bottom: 12px;
+    }
+    .hero p {
+      font-size: 14px;
+      color: #556;
+    }
+
+    /* ===== Main Container ===== */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+
+    /* ===== Section ===== */
+    .section {
+      margin-top: 40px;
+    }
+    .section-header {
+      background: #1a3e6e;
+      color: #fff;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 4px 4px 0 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-header .badge {
+      background: #ff6600;
+      color: #fff;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-weight: 700;
+    }
+    .section-body {
+      border: 1px solid #d0d5dd;
+      border-top: none;
+      padding: 24px;
+      border-radius: 0 0 4px 4px;
+      background: #fff;
+    }
+
+    /* ===== Step 1: Plan Selection ===== */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+    .plan-card {
+      border: 2px solid #d0d5dd;
+      border-radius: 8px;
+      padding: 16px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fff;
+      position: relative;
+    }
+    .plan-card:hover {
+      border-color: #0066cc;
+      box-shadow: 0 2px 8px rgba(0,102,204,0.15);
+    }
+    .plan-card.selected {
+      border-color: #0066cc;
+      background: #f0f6ff;
+      box-shadow: 0 2px 12px rgba(0,102,204,0.2);
+    }
+    .plan-card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      background: #0066cc;
+      color: #fff;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .plan-card .plan-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a3e6e;
+      margin-bottom: 8px;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .plan-card .plan-price {
+      font-size: 18px;
+      font-weight: 700;
+      color: #e55c00;
+    }
+    .plan-card .plan-price small {
+      font-size: 11px;
+      font-weight: 400;
+      color: #888;
+    }
+    .plan-card .plan-storage {
+      font-size: 11px;
+      color: #666;
+      margin-top: 6px;
+    }
+    .plan-card .plan-storage-detail {
+      font-size: 10px;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    /* Plan info row */
+    .plan-info-row {
+      margin-top: 20px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .plan-info-row .info-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .plan-info-row label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #555;
+    }
+    .plan-info-row select {
+      padding: 6px 28px 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+      background: #fff;
+      appearance: auto;
+    }
+
+    /* ===== Step 2: Options ===== */
+    .option-group {
+      margin-bottom: 24px;
+    }
+    .option-group:last-child { margin-bottom: 0; }
+    .option-group-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a3e6e;
+      padding: 8px 12px;
+      background: #f0f4f8;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .option-row {
+      display: flex;
+      align-items: flex-start;
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+    .option-row:last-child { border-bottom: none; }
+    .option-row.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .option-row .option-check {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .option-row .option-check input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #0066cc;
+    }
+    .option-row .option-label {
+      flex: 1;
+    }
+    .option-row .option-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+    }
+    .option-row .option-desc {
+      font-size: 11px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .option-row .option-price {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e55c00;
+      white-space: nowrap;
+      min-width: 120px;
+      text-align: right;
+    }
+    .option-row .option-input {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .option-row .option-input select,
+    .option-row .option-input input[type="number"] {
+      padding: 4px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+      width: 120px;
+    }
+    .option-row .option-input input[type="number"] { width: 80px; }
+    .option-row .option-input span { font-size: 12px; color: #666; }
+
+    /* Standard label */
+    .label-standard {
+      display: inline-block;
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 4px;
+    }
+    .label-new {
+      display: inline-block;
+      background: #fff3e0;
+      color: #e65100;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 4px;
+    }
+
+    /* Sub-options */
+    .sub-options {
+      margin-top: 8px;
+      margin-left: 28px;
+      padding: 8px 12px;
+      background: #fafbfc;
+      border-radius: 4px;
+      border: 1px solid #eee;
+    }
+    .sub-option-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      font-size: 12px;
+    }
+    .sub-option-row input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      accent-color: #0066cc;
+    }
+
+    /* AI plan selector */
+    .ai-plan-grid {
+      margin-top: 8px;
+      margin-left: 28px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    .ai-plan-item {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 8px 6px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 11px;
+      transition: all 0.15s;
+      background: #fff;
+    }
+    .ai-plan-item:hover { border-color: #0066cc; }
+    .ai-plan-item.selected {
+      border-color: #0066cc;
+      background: #f0f6ff;
+    }
+    .ai-plan-item .ai-name { font-weight: 700; color: #1a3e6e; }
+    .ai-plan-item .ai-price { color: #e55c00; font-weight: 700; margin-top: 4px; }
+    .ai-plan-item .ai-detail { color: #999; font-size: 10px; margin-top: 2px; }
+
+    /* ===== Step 3: Quote Result ===== */
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .result-table thead th {
+      background: #1a3e6e;
+      color: #fff;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 12px;
+    }
+    .result-table thead th:last-child { text-align: right; }
+    .result-table thead th:nth-child(3),
+    .result-table thead th:nth-child(4) { text-align: right; }
+    .result-table tbody td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      vertical-align: top;
+    }
+    .result-table tbody td:last-child { text-align: right; font-weight: 500; }
+    .result-table tbody td:nth-child(3),
+    .result-table tbody td:nth-child(4) { text-align: right; }
+    .result-table tbody tr:nth-child(even) { background: #fafbfc; }
+    .result-table tfoot td {
+      padding: 14px 12px;
+      font-weight: 700;
+      font-size: 16px;
+      border-top: 2px solid #1a3e6e;
+    }
+    .result-table tfoot .total-label { text-align: right; color: #1a3e6e; }
+    .result-table tfoot .total-amount { text-align: right; color: #e55c00; font-size: 20px; }
+    .result-annual {
+      text-align: right;
+      margin-top: 8px;
+      font-size: 13px;
+      color: #666;
+    }
+    .result-annual strong { color: #333; font-size: 15px; }
+
+    /* ===== Step 4: Quote Form ===== */
+    .quote-form-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px 16px;
+      align-items: center;
+    }
+    .quote-form-grid label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #555;
+      text-align: right;
+    }
+    .quote-form-grid label .required {
+      color: #e55c00;
+      font-size: 11px;
+      margin-left: 4px;
+    }
+    .quote-form-grid input[type="text"],
+    .quote-form-grid input[type="email"],
+    .quote-form-grid input[type="tel"] {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 100%;
+      max-width: 360px;
+    }
+    .quote-form-grid input:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 2px rgba(0,102,204,0.15);
+    }
+    .quote-note {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: #fff9f0;
+      border: 1px solid #ffe0b2;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #8b6914;
+    }
+    .quote-actions {
+      margin-top: 24px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+    .btn {
+      padding: 12px 40px;
+      border: none;
+      border-radius: 4px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #0066cc;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #0055aa; }
+    .btn-secondary {
+      background: #eee;
+      color: #555;
+    }
+    .btn-secondary:hover { background: #ddd; }
+
+    /* ===== Footer ===== */
+    .footer {
+      background: #1a2740;
+      color: #aab;
+      padding: 40px 20px 20px;
+      margin-top: 60px;
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .footer-links {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .footer-links h4 {
+      color: #fff;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .footer-links a {
+      display: block;
+      color: #8899aa;
+      font-size: 12px;
+      padding: 2px 0;
+    }
+    .footer-links a:hover { color: #bcd; }
+    .footer-copy {
+      text-align: center;
+      font-size: 11px;
+      color: #667;
+      border-top: 1px solid #2a3a50;
+      padding-top: 16px;
+    }
+
+    /* ===== Utilities ===== */
+    .hidden { display: none !important; }
+    .text-muted { color: #999; }
+    .mt-8 { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .plan-grid { grid-template-columns: repeat(2, 1fr); }
+      .ai-plan-grid { grid-template-columns: repeat(2, 1fr); }
+      .quote-form-grid { grid-template-columns: 1fr; }
+      .quote-form-grid label { text-align: left; }
+      .header-nav { display: none; }
+      .footer-links { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ===== i18n Overlay System ===== */
+    /* 全data-i18n要素: position:relativeのみ（displayは変更しない） */
+    body.i18n-active [data-i18n] {
+      outline: 1px dashed rgba(0,102,204,0.4);
+      outline-offset: 2px;
+      cursor: help;
+      position: relative;
+    }
+    /* inline要素のみinline-block化（::afterのposition:absoluteに必要） */
+    body.i18n-active span[data-i18n],
+    body.i18n-active a[data-i18n],
+    body.i18n-active small[data-i18n],
+    body.i18n-active label[data-i18n] {
+      display: inline-block;
+    }
+    /* select/input等のreplaced要素は::afterが効かないのでoutlineのみ表示 */
+    body.i18n-active select[data-i18n]::after,
+    body.i18n-active input[data-i18n]::after {
+      display: none;
+    }
+    body.i18n-active [data-i18n-status="existing"]::after {
+      content: attr(data-i18n);
+      position: absolute;
+      top: -10px;
+      right: -4px;
+      font-size: 9px;
+      font-family: 'Geist Mono', monospace;
+      background: #D0DEFE;
+      color: #004EFE;
+      padding: 1px 4px;
+      border-radius: 3px;
+      white-space: nowrap;
+      pointer-events: none;
+      line-height: 1.2;
+      z-index: 10000;
+    }
+    body.i18n-active [data-i18n-status="new"]::after {
+      content: "NEW " attr(data-i18n);
+      position: absolute;
+      top: -10px;
+      right: -4px;
+      font-size: 9px;
+      font-family: 'Geist Mono', monospace;
+      background: #FFECE0;
+      color: #FF660D;
+      padding: 1px 4px;
+      border-radius: 3px;
+      white-space: nowrap;
+      pointer-events: none;
+      line-height: 1.2;
+      z-index: 10000;
+    }
+    /* overflow:hiddenによるバッジ切れ防止 */
+    body.i18n-active .section-header,
+    body.i18n-active .option-row,
+    body.i18n-active .option-label,
+    body.i18n-active .option-group,
+    body.i18n-active .plan-card,
+    body.i18n-active .sub-option-row,
+    body.i18n-active .plan-grid,
+    body.i18n-active .form-grid,
+    body.i18n-active .form-group {
+      overflow: visible;
+    }
+    .i18n-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid #E4E7F0;
+      background: #fff;
+      color: #606E8F;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      z-index: 10001;
+      transition: all 0.2s;
+    }
+    .i18n-fab:hover { border-color: #4D83FF; color: #4D83FF; }
+    .i18n-fab.active { background: #4D83FF; color: #fff; border-color: #4D83FF; }
+    .i18n-panel {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 320px;
+      max-height: 280px;
+      background: #fff;
+      border: 1px solid #E4E7F0;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 10001;
+      overflow: hidden;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .i18n-panel__header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #F2F4FA;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .i18n-panel__title { font-size: 13px; font-weight: 700; color: #263557; }
+    .i18n-panel__badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .i18n-panel__badge.existing { background: #D0DEFE; color: #004EFE; }
+    .i18n-panel__badge.new { background: #FFECE0; color: #FF660D; }
+    .i18n-panel__body { padding: 12px 16px; overflow-y: auto; max-height: 220px; }
+    .i18n-panel__code { font-family: monospace; font-size: 15px; font-weight: 700; margin-bottom: 8px; color: #091124; }
+    .i18n-panel__translations { font-size: 12px; line-height: 1.6; color: #384970; }
+    .i18n-panel__translations .lang-label { display: inline-block; width: 24px; font-weight: 700; color: #606E8F; }
+    .i18n-panel__empty { color: #8B97B2; font-size: 12px; text-align: center; padding: 16px 0; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Header ===== -->
+  <header class="header" data-component="Header">
+    <div class="header-inner">
+      <div class="header-logo">
+        <div class="logo-mark">DC</div>
+        DirectCloud
+      </div>
+      <nav class="header-nav" data-component="Navigation">
+        <a href="#">機能</a>
+        <a href="#">料金</a>
+        <a href="#">セキュリティ</a>
+        <a href="#">導入事例</a>
+        <a href="#">サポート</a>
+        <div class="lang-toggle" data-component="LanguageToggle">
+          <button id="langJA" class="active" onclick="switchLanguage('ja')">JA</button>
+          <button id="langKO" onclick="switchLanguage('ko')">KO</button>
+        </div>
+        <a href="#" class="header-cta" data-i18n="sm.100001" data-i18n-status="new">お問い合わせ</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== Breadcrumb ===== -->
+  <div class="breadcrumb" data-component="Breadcrumb">
+    <a href="#" data-i18n="sm.100002" data-i18n-status="new">トップページ</a> ＞ <span data-i18n="sm.100003" data-i18n-status="new">簡単見積シミュレーション</span>
+  </div>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero" data-component="HeroBanner">
+    <h1 data-i18n="sm.100004" data-i18n-status="new">見積シミュレーション</h1>
+    <p data-i18n="sm.100005" data-i18n-status="new">ご利用プランとオプションを選択して、月額料金をシミュレーションできます。</p>
+  </section>
+
+  <div class="container">
+
+    <!-- ===== STEP 1: Plan Selection ===== -->
+    <div class="section" data-component="PlanSelection">
+      <div class="section-header">
+        <span>STEP 1</span>
+        <span data-i18n="sm.100006" data-i18n-status="new">サービスプランを選択してください</span>
+        <span class="badge" data-i18n="sm.100007" data-i18n-status="new">必須</span>
+      </div>
+      <div class="section-body">
+        <div class="plan-grid" id="planGrid">
+          <!-- Plans rendered by JS -->
+        </div>
+        <div class="plan-info-row">
+          <div class="info-item">
+            <label data-i18n="sm.100008" data-i18n-status="new">利用人数：</label>
+            <select id="userCount">
+              <option value="10-50">10～50人</option>
+              <option value="50-100">50～100人</option>
+              <option value="100-300">100～300人</option>
+              <option value="300+">300人以上</option>
+            </select>
+          </div>
+          <div class="info-item">
+            <label data-i18n="sm.100009" data-i18n-status="new">ご利用範囲：</label>
+            <select id="usageScope" data-i18n="sm.100010" data-i18n-status="new" data-i18n-note="特定部門 / 全職員">
+              <option value="dept">特定部門</option>
+              <option value="all">全職員</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STEP 2: Options ===== -->
+    <div class="section" data-component="OptionSelection">
+      <div class="section-header">
+        <span>STEP 2</span>
+        <span data-i18n="sm.100012" data-i18n-status="new">オプションを選択してください</span>
+      </div>
+      <div class="section-body" id="optionsBody">
+        <!-- Options rendered by JS based on selected plan -->
+        <p class="text-muted" id="optionPlaceholder" data-i18n="sm.100013" data-i18n-status="new">STEP 1でプランを選択すると、オプションが表示されます。</p>
+      </div>
+    </div>
+
+    <!-- ===== STEP 3: Quote Result ===== -->
+    <div class="section" data-component="QuoteResult">
+      <div class="section-header">
+        <span>STEP 3</span>
+        <span data-i18n="sm.100014" data-i18n-status="new">見積結果</span>
+      </div>
+      <div class="section-body">
+        <table class="result-table" id="resultTable">
+          <thead>
+            <tr>
+              <th data-i18n="sm.100015" data-i18n-status="new">品目</th>
+              <th data-i18n="sm.100016" data-i18n-status="new">内訳</th>
+              <th data-i18n="sm.100017" data-i18n-status="new">数量</th>
+              <th data-i18n="sm.100018" data-i18n-status="new">単価</th>
+              <th data-i18n="sm.100019" data-i18n-status="new">月額料金（税別）</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody">
+            <tr>
+              <td colspan="5" class="text-muted" style="text-align:center;padding:24px;" data-i18n="sm.100020" data-i18n-status="new">プランを選択してください</td>
+            </tr>
+          </tbody>
+          <tfoot id="resultFoot" class="hidden">
+            <tr>
+              <td colspan="4" class="total-label" data-i18n="sm.100021" data-i18n-status="new">合計（税別）</td>
+              <td class="total-amount" id="totalAmount">0円</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="result-annual hidden" id="resultAnnual">
+          <span data-i18n="sm.100022" data-i18n-status="new">年間お見積金額（税別）：</span>
+          <strong id="annualAmount">0円</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STEP 4: Quote Issue ===== -->
+    <div class="section" data-component="QuoteForm">
+      <div class="section-header">
+        <span>STEP 4</span>
+        <span data-i18n="sm.100023" data-i18n-status="new">お見積書の発行</span>
+      </div>
+      <div class="section-body">
+        <div class="quote-form-grid">
+          <label data-i18n="sm.100024" data-i18n-status="new">会社名<span class="required">※必須</span></label>
+          <input type="text" id="companyName" placeholder="株式会社ダイレクトクラウド">
+
+          <label data-i18n="sm.100025" data-i18n-status="new">お名前<span class="required">※必須</span></label>
+          <input type="text" id="personName" placeholder="山田 太郎">
+
+          <label data-i18n="sm.100026" data-i18n-status="new">メールアドレス<span class="required">※必須</span></label>
+          <input type="email" id="email" placeholder="example@company.co.jp">
+
+          <label data-i18n="sm.100027" data-i18n-status="new">電話番号<span class="required">※必須</span></label>
+          <input type="tel" id="phone" placeholder="03-0000-0000">
+        </div>
+        <div class="quote-note">
+          <span data-i18n="sm.100028" data-i18n-status="new">こちらは正式な見積書ではありません。正式な見積書はWebフォームよりご依頼ください。</span>
+        </div>
+        <div class="quote-actions">
+          <button class="btn btn-primary" onclick="issueQuote()" data-i18n="sm.100029" data-i18n-status="new">お見積書を発行する</button>
+          <button class="btn btn-secondary" onclick="resetAll()" data-i18n="co.100002" data-i18n-status="existing">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer" data-component="Footer">
+    <div class="footer-inner">
+      <div class="footer-links">
+        <div>
+          <h4>サービス</h4>
+          <a href="#">DirectCloud</a>
+          <a href="#">DirectCloud-SHIELD</a>
+          <a href="#">DirectCloud AI</a>
+          <a href="#">料金プラン</a>
+        </div>
+        <div>
+          <h4>サポート</h4>
+          <a href="#">オンラインマニュアル</a>
+          <a href="#">FAQ</a>
+          <a href="#">お問い合わせ</a>
+        </div>
+        <div>
+          <h4>企業情報</h4>
+          <a href="#">会社概要</a>
+          <a href="#">セキュリティ</a>
+          <a href="#">プライバシーポリシー</a>
+        </div>
+        <div>
+          <h4>関連リンク</h4>
+          <a href="#">導入事例</a>
+          <a href="#">パートナー</a>
+          <a href="#">ブログ</a>
+        </div>
+      </div>
+      <div class="footer-copy">
+        &copy; 2026 株式会社ダイレクトクラウド All Rights Reserved.
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== i18n Overlay ===== -->
+  <button id="i18n-toggle" class="i18n-fab" title="i18n コード表示">i18n</button>
+  <div id="i18n-panel" class="i18n-panel" style="display:none;">
+    <div class="i18n-panel__header">
+      <span class="i18n-panel__title">i18n Code Info</span>
+      <span class="i18n-panel__badge" id="i18nBadge"></span>
+    </div>
+    <div class="i18n-panel__body">
+      <div class="i18n-panel__code" id="i18nCode">-</div>
+      <div class="i18n-panel__translations" id="i18nTrans">
+        <div class="i18n-panel__empty">多言語要素にマウスを置いてください</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ===== Pricing Data (2026年1月～) =====
+const PLANS = [
+  { id: 'standard',  name: 'スタンダード',         price: 44000,   storage: '500GB',  hot: '500GB',  warm: '-',    tier: 1 },
+  { id: 'advanced',  name: 'アドバンスド',          price: 72000,   storage: '1TB',    hot: '1TB',    warm: '-',    tier: 2 },
+  { id: 'business',  name: 'ビジネス',              price: 130000,  storage: '4TB',    hot: '3TB',    warm: '1TB',  tier: 3 },
+  { id: 'premium',   name: 'プレミアム',            price: 260000,  storage: '12TB',   hot: '10TB',   warm: '2TB',  tier: 4 },
+  { id: 'enterprise',name: 'エンタープライズ',      price: 432000,  storage: '35TB',   hot: '30TB',   warm: '5TB',  tier: 5 },
+  { id: 'ep50',      name: 'Enterprise Plus 50',    price: 720000,  storage: '50TB',   hot: '30TB',   warm: '20TB', tier: 6 },
+  { id: 'ep100',     name: 'Enterprise Plus 100',   price: 1200000, storage: '100TB',  hot: '30TB',   warm: '70TB', tier: 7 }
+];
+
+// Hot Storage add-on per 500GB
+const HOT_STORAGE = {
+  advanced: 36000, business: 22000, premium: 15000, enterprise: 15000, ep50: null, ep100: null
+};
+// EP50/100 per 1TB
+const HOT_STORAGE_1TB = { ep50: 24000, ep100: 24000 };
+
+// Warm Storage per 1TB
+const WARM_STORAGE = {
+  business: 18000, premium: 12000, enterprise: 12000, ep50: 12000, ep100: 12000
+};
+const WARM_SUB = {
+  download:  { business: 3600, premium: 2400, enterprise: 2400, ep50: 2400, ep100: 2400 },
+  search:    { business: 3600, premium: 2400, enterprise: 2400, ep50: 0,    ep100: 0 },
+  preview:   { business: 3600, premium: 2400, enterprise: 2400, ep50: 0,    ep100: 0 }
+};
+
+// Cold Storage per 1TB
+const COLD_STORAGE = {
+  business: 7500, premium: 5000, enterprise: 5000, ep50: 5000, ep100: 5000
+};
+
+// AI Plans
+const AI_PLANS = [
+  { id: 'basic',   name: 'Basic',   folders: 3,    capacity: '300MB',  credits: '21,000',  price: 30000 },
+  { id: 'value',   name: 'Value',   folders: 5,    capacity: '1.5GB',  credits: '38,500',  price: 50000 },
+  { id: 'elite',   name: 'Elite',   folders: 10,   capacity: '5GB',    credits: '84,000',  price: 100000 },
+  { id: 'custom',  name: 'CUSTOM',  folders: 2000, capacity: '1TB',    credits: '自社AOAI', price: 300000 },
+  { id: 'custom+', name: 'CUSTOM+', folders: 6000, capacity: '3TB',    credits: '-',        price: 400000 }
+];
+
+// SHIELD IRM ladder
+const IRM_LADDER = [
+  { min: 10,   max: 50,    unit: 720 },
+  { min: 51,   max: 100,   unit: 660 },
+  { min: 101,  max: 200,   unit: 600 },
+  { min: 201,  max: 300,   unit: 540 },
+  { min: 301,  max: 500,   unit: 480 },
+  { min: 501,  max: 700,   unit: 420 },
+  { min: 701,  max: 900,   unit: 360 },
+  { min: 901,  max: 1000,  unit: 300 },
+  { min: 1001, max: 3000,  unit: 240 },
+  { min: 3001, max: 5000,  unit: 180 },
+  { min: 5001, max: 10000, unit: 120 }
+];
+
+// SHIELD DLP options
+const DLP_OPTIONS = [
+  { label: '100GB', price: 36000 },
+  { label: '300GB', price: 90000 },
+  { label: '500GB', price: 120000 },
+  { label: '1TB',   price: 180000 },
+  { label: '5TB',   price: 720000 },
+  { label: '10TB',  price: 1200000 }
+];
+
+// Salesforce
+const SALESFORCE = { business: 44000 }; // Premium+ = standard
+
+// Drive Letter expansion
+const DRIVE_LETTER = 48000;
+
+// MFP per 10 folders
+const MFP_PRICE = 15000;
+
+// ===== State =====
+let selectedPlan = null;
+let optionState = {};
+let currentLang = 'ja';
+
+// ===== Language Data =====
+const TRANSLATIONS = {
+  'sm.100001': { ja: 'お問い合わせ', ko: '문의하기' },
+  'sm.100002': { ja: 'トップページ', ko: '홈' },
+  'sm.100003': { ja: '簡単見積シミュレーション', ko: '간편 견적 시뮬레이션' },
+  'sm.100004': { ja: '見積シミュレーション', ko: '견적 시뮬레이션' },
+  'sm.100005': { ja: 'ご利用プランとオプションを選択して、月額料金をシミュレーションできます。', ko: '이용 플랜과 옵션을 선택하여 월 요금을 시뮬레이션할 수 있습니다.' },
+  'sm.100006': { ja: 'サービスプランを選択してください', ko: '서비스 플랜을 선택해 주세요' },
+  'sm.100007': { ja: '必須', ko: '필수' },
+  'sm.100008': { ja: '利用人数：', ko: '이용 인원:' },
+  'sm.100009': { ja: 'ご利用範囲：', ko: '이용 범위:' },
+  'sm.100012': { ja: 'オプションを選択してください', ko: '옵션을 선택해 주세요' },
+  'sm.100013': { ja: 'STEP 1でプランを選択すると、オプションが表示されます。', ko: 'STEP 1에서 플랜을 선택하면 옵션이 표시됩니다.' },
+  'sm.100014': { ja: '見積結果', ko: '견적 결과' },
+  'sm.100015': { ja: '品目', ko: '품목' },
+  'sm.100016': { ja: '内訳', ko: '내역' },
+  'sm.100017': { ja: '数量', ko: '수량' },
+  'sm.100018': { ja: '単価', ko: '단가' },
+  'sm.100019': { ja: '月額料金（税別）', ko: '월 요금(세별)' },
+  'sm.100020': { ja: 'プランを選択してください', ko: '플랜을 선택해 주세요' },
+  'sm.100021': { ja: '合計（税別）', ko: '합계(세별)' },
+  'sm.100022': { ja: '年間お見積金額（税別）：', ko: '연간 견적 금액(세별):' },
+  'sm.100023': { ja: 'お見積書の発行', ko: '견적서 발행' },
+  'sm.100024': { ja: '会社名', ko: '회사명' },
+  'sm.100025': { ja: 'お名前', ko: '성명' },
+  'sm.100026': { ja: 'メールアドレス', ko: '이메일' },
+  'sm.100027': { ja: '電話番号', ko: '전화번호' },
+  'sm.100028': { ja: 'こちらは正式な見積書ではありません。正式な見積書はWebフォームよりご依頼ください。', ko: '이것은 정식 견적서가 아닙니다. 정식 견적서는 웹 문의를 통해 요청해 주세요.' },
+  'sm.100029': { ja: 'お見積書を発行する', ko: '견적서 발행하기' },
+  'co.100002': { ja: 'キャンセル', ko: '취소' },
+};
+const PLAN_NAMES = {
+  standard:   { ja: 'スタンダード', ko: '스탠다드' },
+  advanced:   { ja: 'アドバンスド', ko: '어드밴스드' },
+  business:   { ja: 'ビジネス', ko: '비즈니스' },
+  premium:    { ja: 'プレミアム', ko: '프리미엄' },
+  enterprise: { ja: 'エンタープライズ', ko: '엔터프라이즈' },
+  ep50:       { ja: 'Enterprise Plus 50', ko: 'Enterprise Plus 50' },
+  ep100:      { ja: 'Enterprise Plus 100', ko: 'Enterprise Plus 100' }
+};
+const NAV_TEXTS = {
+  ja: ['機能', '料金', 'セキュリティ', '導入事例', 'サポート'],
+  ko: ['기능', '요금', '보안', '도입사례', '지원']
+};
+const FOOTER_TITLES = {
+  ja: ['サービス', 'サポート', '企業情報', '関連リンク'],
+  ko: ['서비스', '지원', '기업정보', '관련링크']
+};
+const FOOTER_LINKS = {
+  ja: [['DirectCloud','DirectCloud-SHIELD','DirectCloud AI','料金プラン'],['オンラインマニュアル','FAQ','お問い合わせ'],['会社概要','セキュリティ','プライバシーポリシー'],['導入事例','パートナー','ブログ']],
+  ko: [['DirectCloud','DirectCloud-SHIELD','DirectCloud AI','요금 플랜'],['온라인 매뉴얼','FAQ','문의하기'],['회사개요','보안','개인정보처리방침'],['도입사례','파트너','블로그']]
+};
+const USER_COUNT_OPTS = {
+  ja: ['10～50人','50～100人','100～300人','300人以上'],
+  ko: ['10~50명','50~100명','100~300명','300명 이상']
+};
+const SCOPE_OPTS = { ja: ['特定部門','全職員'], ko: ['특정 부서','전체 직원'] };
+
+// ===== Utility =====
+function fmt(n) {
+  return n.toLocaleString('ja-JP');
+}
+function t(ja, ko) { return currentLang === 'ko' ? ko : ja; }
+function planName(p) { const n = PLAN_NAMES[p.id]; return n ? n[currentLang] : p.name; }
+function tr(key) { const e = I18N_DYNAMIC[key]; return e ? (e[currentLang] || e.ja) : key; }
+function trv(key, vars) {
+  let text = tr(key);
+  if (vars) { Object.entries(vars).forEach(([k, v]) => { text = text.replaceAll(k, String(v)); }); }
+  return text;
+}
+
+// ===== Plan Rendering =====
+// i18n コードマップ (動的要素用)
+const I18N_DYNAMIC = {
+  'plan.price_unit':    { code: 'sm.100050', status: 'new', ja: '円/月', ko: '원/월' },
+  'storage.title':      { code: 'sm.100051', status: 'new', ja: 'ストレージ', ko: '스토리지' },
+  'hot.name':           { code: 'sm.100052', status: 'new', ja: 'ホットストレージ容量追加', ko: '핫 스토리지 용량 추가' },
+  'hot.desc_unit':      { code: 'sm.100053', status: 'new', ja: '%D%単位で追加可能', ko: '%D% 단위로 추가 가능' },
+  'warm.name':          { code: 'sm.100054', status: 'new', ja: 'ウォームストレージ追加', ko: '웜 스토리지 추가' },
+  'warm.desc':          { code: 'sm.100055', status: 'new', ja: '1TB単位 ｜ %C%円/TB/月', ko: '1TB 단위 | %C%원/TB/월' },
+  'warm.download':      { code: 'sm.100056', status: 'new', ja: 'ダウンロード', ko: '다운로드' },
+  'warm.search':        { code: 'sm.100057', status: 'new', ja: '全文検索', ko: '전문 검색' },
+  'warm.preview':       { code: 'sm.100058', status: 'new', ja: 'プレビュー', ko: '미리보기' },
+  'warm.standard':      { code: 'sm.100059', status: 'new', ja: '標準提供', ko: '기본 제공' },
+  'cold.name':          { code: 'sm.100060', status: 'new', ja: 'コールドストレージ追加', ko: '콜드 스토리지 추가' },
+  'cold.desc':          { code: 'sm.100061', status: 'new', ja: '1TB単位 ｜ %C%円/TB/月', ko: '1TB 단위 | %C%원/TB/월' },
+  'ai.title':           { code: 'sm.100062', status: 'new', ja: 'AI', ko: 'AI' },
+  'ai.free.name':       { code: 'sm.100063', status: 'new', ja: 'DirectCloud AI Free', ko: 'DirectCloud AI Free' },
+  'ai.free.desc':       { code: 'sm.100064', status: 'new', ja: '全有料プランに標準搭載', ko: '모든 유료 플랜에 기본 탑재' },
+  'ai.paid.name':       { code: 'sm.100065', status: 'new', ja: 'DirectCloud AI 有料プラン', ko: 'DirectCloud AI 유료 플랜' },
+  'ai.paid.desc':       { code: 'sm.100066', status: 'new', ja: '高度なAI機能を追加', ko: '고급 AI 기능 추가' },
+  'security.title':     { code: 'sm.100067', status: 'new', ja: 'セキュリティ', ko: '보안' },
+  'irm.name':           { code: 'sm.100068', status: 'new', ja: 'DirectCloud-SHIELD IRM', ko: 'DirectCloud-SHIELD IRM' },
+  'irm.desc':           { code: 'sm.100069', status: 'new', ja: 'ユーザー数ベースのラダー課金', ko: '사용자 수 기반 단계별 과금' },
+  'dlp.name':           { code: 'sm.100070', status: 'new', ja: 'DirectCloud-SHIELD DLP', ko: 'DirectCloud-SHIELD DLP' },
+  'dlp.desc':           { code: 'sm.100071', status: 'new', ja: '容量ベース課金', ko: '용량 기반 과금' },
+  'other.title':        { code: 'sm.100072', status: 'new', ja: 'その他オプション', ko: '기타 옵션' },
+  'mfp.name':           { code: 'sm.100073', status: 'new', ja: '複合機連携（MFP）', ko: '복합기 연동(MFP)' },
+  'mfp.desc':           { code: 'sm.100074', status: 'new', ja: '10フォルダ単位 ｜ %C%円/10フォルダ/月', ko: '10폴더 단위 | %C%원/10폴더/월' },
+  'sf.name':            { code: 'sm.100075', status: 'new', ja: 'Salesforce連携', ko: 'Salesforce 연동' },
+  'dl.name':            { code: 'sm.100076', status: 'new', ja: 'ドライブレター拡張 (11→20)', ko: '드라이브 문자 확장 (11→20)' },
+  'label.new':          { code: 'sm.100077', status: 'new', ja: 'NEW', ko: 'NEW' },
+  'label.standard':     { code: 'sm.100078', status: 'new', ja: '標準提供', ko: '기본 제공' },
+  'select.placeholder': { code: 'sm.100079', status: 'new', ja: '選択してください', ko: '선택해 주세요' },
+  'unit.user':          { code: 'sm.100080', status: 'new', ja: 'ユーザー', ko: '사용자' },
+  'unit.tb':            { code: 'sm.100081', status: 'new', ja: 'TB', ko: 'TB' },
+  'unit.x10folder':     { code: 'sm.100082', status: 'new', ja: '× 10フォルダ', ko: '× 10폴더' },
+};
+
+function di18n(key, text) {
+  const entry = I18N_DYNAMIC[key];
+  if (!entry) return text || '';
+  return `data-i18n="${entry.code}" data-i18n-status="${entry.status}"`;
+}
+
+function renderPlans() {
+  const grid = document.getElementById('planGrid');
+  grid.innerHTML = PLANS.map(p => `
+    <div class="plan-card" data-plan="${p.id}" onclick="selectPlan('${p.id}')">
+      <div class="plan-name" data-i18n="sm.plan.${p.id}" data-i18n-status="new">${planName(p)}</div>
+      <div class="plan-price">${fmt(p.price)}<small ${di18n('plan.price_unit')}>${tr('plan.price_unit')}</small></div>
+      <div class="plan-storage">${p.storage}</div>
+      <div class="plan-storage-detail">Hot ${p.hot}${p.warm !== '-' ? ' + Warm ' + p.warm : ''}</div>
+    </div>
+  `).join('');
+}
+
+function selectPlan(id) {
+  selectedPlan = PLANS.find(p => p.id === id);
+  optionState = {};
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector(`.plan-card[data-plan="${id}"]`).classList.add('selected');
+  renderOptions();
+  recalculate();
+}
+
+// ===== Options Rendering =====
+function renderOptions() {
+  if (!selectedPlan) return;
+  const body = document.getElementById('optionsBody');
+  const tier = selectedPlan.tier;
+  const pid = selectedPlan.id;
+  let html = '';
+
+  // Group 1: Storage
+  html += `<div class="option-group"><div class="option-group-title">📦 <span ${di18n('storage.title')}>${tr('storage.title')}</span></div>`;
+
+  // Hot Storage (not Standard)
+  if (tier >= 2) {
+    const isEP = pid === 'ep50' || pid === 'ep100';
+    const unit = isEP ? '1TB' : '500GB';
+    html += `<div class="option-row">
+      <div class="option-check"><input type="checkbox" id="opt_hot" onchange="toggleOption('hot')"></div>
+      <div class="option-label">
+        <div class="option-name" ${di18n('hot.name')}>${tr('hot.name')}</div>
+        <div class="option-desc" ${di18n('hot.desc_unit')}>${trv('hot.desc_unit', {'%D%': unit})}</div>
+        <div class="option-input" id="hotInput" style="display:none">
+          <select id="hotSelect" onchange="recalculate()">
+            ${isEP ? buildTBDropdown() : buildHotDropdown()}
+          </select>
+        </div>
+      </div>
+      <div class="option-price" id="hotPrice">-</div>
+    </div>`;
+  }
+
+  // Warm Storage (Business+)
+  if (tier >= 3) {
+    html += `<div class="option-row">
+      <div class="option-check"><input type="checkbox" id="opt_warm" onchange="toggleOption('warm')"></div>
+      <div class="option-label">
+        <div class="option-name"><span ${di18n('warm.name')}>${tr('warm.name')}</span> <span class="label-new" ${di18n('label.new')}>${tr('label.new')}</span></div>
+        <div class="option-desc" ${di18n('warm.desc')}>${trv('warm.desc', {'%C%': fmt(WARM_STORAGE[pid])})}</div>
+        <div class="option-input" id="warmInput" style="display:none">
+          <input type="number" id="warmQty" min="1" max="100" value="1" onchange="recalculate()"> <span>TB</span>
+        </div>
+        <div class="sub-options" id="warmSub" style="display:none">
+          <div class="sub-option-row"><input type="checkbox" id="warmDl" onchange="recalculate()"> <span ${di18n('warm.download')}>${tr('warm.download')}</span> (+${fmt(WARM_SUB.download[pid])}${t('円','원')}/TB)</div>
+          <div class="sub-option-row"><input type="checkbox" id="warmSearch" onchange="recalculate()"> <span ${di18n('warm.search')}>${tr('warm.search')}</span> ${(pid==='ep50'||pid==='ep100') ? '<span class="label-standard" '+di18n('warm.standard')+'>'+tr('label.standard')+'</span>' : '(+'+fmt(WARM_SUB.search[pid])+t('円','원')+'/TB)'}</div>
+          <div class="sub-option-row"><input type="checkbox" id="warmPreview" onchange="recalculate()"> <span ${di18n('warm.preview')}>${tr('warm.preview')}</span> ${(pid==='ep50'||pid==='ep100') ? '<span class="label-standard" '+di18n('warm.standard')+'>'+tr('label.standard')+'</span>' : '(+'+fmt(WARM_SUB.preview[pid])+t('円','원')+'/TB)'}</div>
+        </div>
+      </div>
+      <div class="option-price" id="warmPrice">-</div>
+    </div>`;
+  }
+
+  // Cold Storage (Business+)
+  if (tier >= 3) {
+    html += `<div class="option-row">
+      <div class="option-check"><input type="checkbox" id="opt_cold" onchange="toggleOption('cold')"></div>
+      <div class="option-label">
+        <div class="option-name"><span ${di18n('cold.name')}>${tr('cold.name')}</span> <span class="label-new" ${di18n('label.new')}>${tr('label.new')}</span></div>
+        <div class="option-desc" ${di18n('cold.desc')}>${trv('cold.desc', {'%C%': fmt(COLD_STORAGE[pid])})}</div>
+        <div class="option-input" id="coldInput" style="display:none">
+          <input type="number" id="coldQty" min="1" max="100" value="1" onchange="recalculate()"> <span>TB</span>
+        </div>
+      </div>
+      <div class="option-price" id="coldPrice">-</div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  // Group 2: AI
+  html += `<div class="option-group"><div class="option-group-title">🤖 <span ${di18n('ai.title')}>${tr('ai.title')}</span></div>`;
+  html += `<div class="option-row">
+    <div class="option-check"></div>
+    <div class="option-label">
+      <div class="option-name"><span ${di18n('ai.free.name')}>${tr('ai.free.name')}</span> <span class="label-standard" ${di18n('label.standard')}>${tr('label.standard')}</span></div>
+      <div class="option-desc" ${di18n('ai.free.desc')}>${tr('ai.free.desc')}</div>
+    </div>
+    <div class="option-price" style="color:#2e7d32;">0${t('円','원')}</div>
+  </div>`;
+  html += `<div class="option-row">
+    <div class="option-check"><input type="checkbox" id="opt_ai" onchange="toggleOption('ai')"></div>
+    <div class="option-label">
+      <div class="option-name"><span ${di18n('ai.paid.name')}>${tr('ai.paid.name')}</span> <span class="label-new" ${di18n('label.new')}>${tr('label.new')}</span></div>
+      <div class="option-desc" ${di18n('ai.paid.desc')}>${tr('ai.paid.desc')}</div>
+      <div class="ai-plan-grid" id="aiGrid" style="display:none">
+        ${AI_PLANS.map(a => `
+          <div class="ai-plan-item" data-ai="${a.id}" onclick="selectAI('${a.id}')">
+            <div class="ai-name">${a.name}</div>
+            <div class="ai-price">${fmt(a.price)}${t('円','원')}</div>
+            <div class="ai-detail">${a.capacity} / ${a.folders}${t('フォルダ','폴더')}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="option-price" id="aiPrice">-</div>
+  </div>`;
+  html += `</div>`;
+
+  // Group 3: Security
+  if (tier >= 3) {
+    html += `<div class="option-group"><div class="option-group-title">🔒 <span ${di18n('security.title')}>${tr('security.title')}</span></div>`;
+    // SHIELD IRM
+    html += `<div class="option-row">
+      <div class="option-check"><input type="checkbox" id="opt_irm" onchange="toggleOption('irm')"></div>
+      <div class="option-label">
+        <div class="option-name" ${di18n('irm.name')}>${tr('irm.name')}</div>
+        <div class="option-desc" ${di18n('irm.desc')}>${tr('irm.desc')}</div>
+        <div class="option-input" id="irmInput" style="display:none">
+          <input type="number" id="irmUsers" min="10" max="10000" value="10" onchange="recalculate()"> <span ${di18n('unit.user')}>${tr('unit.user')}</span>
+        </div>
+      </div>
+      <div class="option-price" id="irmPrice">-</div>
+    </div>`;
+    // SHIELD DLP
+    html += `<div class="option-row">
+      <div class="option-check"><input type="checkbox" id="opt_dlp" onchange="toggleOption('dlp')"></div>
+      <div class="option-label">
+        <div class="option-name"><span ${di18n('dlp.name')}>${tr('dlp.name')}</span> <span class="label-new" ${di18n('label.new')}>${tr('label.new')}</span></div>
+        <div class="option-desc" ${di18n('dlp.desc')}>${tr('dlp.desc')}</div>
+        <div class="option-input" id="dlpInput" style="display:none">
+          <select id="dlpSelect" onchange="recalculate()">
+            ${DLP_OPTIONS.map(d => `<option value="${d.price}">${d.label} (${fmt(d.price)}${tr('plan.price_unit')})</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="option-price" id="dlpPrice">-</div>
+    </div>`;
+    html += `</div>`;
+  }
+
+  // Group 4: Other Options
+  html += `<div class="option-group"><div class="option-group-title">🔧 <span ${di18n('other.title')}>${tr('other.title')}</span></div>`;
+
+  // MFP (Business+)
+  if (tier >= 3) {
+    html += `<div class="option-row">
+      <div class="option-check"><input type="checkbox" id="opt_mfp" onchange="toggleOption('mfp')"></div>
+      <div class="option-label">
+        <div class="option-name"><span ${di18n('mfp.name')}>${tr('mfp.name')}</span><span class="label-new" ${di18n('label.new')}>${tr('label.new')}</span></div>
+        <div class="option-desc" ${di18n('mfp.desc')}>${trv('mfp.desc', {'%C%': fmt(MFP_PRICE)})}</div>
+        <div class="option-input" id="mfpInput" style="display:none">
+          <input type="number" id="mfpQty" min="1" max="100" value="1" step="1" onchange="recalculate()"> <span ${di18n('unit.x10folder')}>${tr('unit.x10folder')}</span>
+        </div>
+      </div>
+      <div class="option-price" id="mfpPrice">-</div>
+    </div>`;
+  }
+
+  // Salesforce
+  if (tier >= 3) {
+    if (pid === 'business') {
+      html += `<div class="option-row">
+        <div class="option-check"><input type="checkbox" id="opt_sf" onchange="toggleOption('sf')"></div>
+        <div class="option-label">
+          <div class="option-name"><span ${di18n('sf.name')}>${tr('sf.name')}</span> <span class="label-new" ${di18n('label.new')}>${tr('label.new')}</span></div>
+          <div class="option-desc">${fmt(SALESFORCE.business)}<span ${di18n('plan.price_unit')}>${tr('plan.price_unit')}</span></div>
+        </div>
+        <div class="option-price" id="sfPrice">-</div>
+      </div>`;
+    } else if (tier >= 4) {
+      html += `<div class="option-row">
+        <div class="option-check"></div>
+        <div class="option-label">
+          <div class="option-name"><span ${di18n('sf.name')}>${tr('sf.name')}</span> <span class="label-standard" ${di18n('label.standard')}>${tr('label.standard')}</span> <span class="label-new" ${di18n('label.new')}>${tr('label.new')}</span></div>
+        </div>
+        <div class="option-price" style="color:#2e7d32;">0${t('円','원')}</div>
+      </div>`;
+    }
+  }
+
+  // Drive Letter (Enterprise+)
+  if (tier >= 5) {
+    html += `<div class="option-row">
+      <div class="option-check"><input type="checkbox" id="opt_dl" onchange="toggleOption('dl')"></div>
+      <div class="option-label">
+        <div class="option-name"><span ${di18n('dl.name')}>${tr('dl.name')}</span> <span class="label-new" ${di18n('label.new')}>${tr('label.new')}</span></div>
+        <div class="option-desc">${fmt(DRIVE_LETTER)}<span ${di18n('plan.price_unit')}>${tr('plan.price_unit')}</span></div>
+      </div>
+      <div class="option-price" id="dlPrice">-</div>
+    </div>`;
+  }
+
+  html += `</div>`;
+
+  body.innerHTML = html;
+}
+
+function buildHotDropdown() {
+  let opts = '<option value="0">' + tr('select.placeholder') + '</option>';
+  for (let i = 500; i <= 5000; i += 500) {
+    const label = i >= 1000 ? `${fmt(i)}GB (${i/1000}TB)` : `${fmt(i)}GB`;
+    opts += `<option value="${i}">${label}</option>`;
+  }
+  return opts;
+}
+
+function buildTBDropdown() {
+  let opts = '<option value="0">' + tr('select.placeholder') + '</option>';
+  for (let i = 1; i <= 10; i++) {
+    opts += `<option value="${i * 1000}">${i}TB</option>`;
+  }
+  return opts;
+}
+
+function toggleOption(key) {
+  const el = document.getElementById('opt_' + key);
+  optionState[key] = el ? el.checked : false;
+  // Show/hide sub-inputs
+  const inputEl = document.getElementById(key + 'Input');
+  if (inputEl) inputEl.style.display = optionState[key] ? 'flex' : 'none';
+  if (key === 'warm') {
+    const subEl = document.getElementById('warmSub');
+    if (subEl) subEl.style.display = optionState[key] ? 'block' : 'none';
+  }
+  if (key === 'ai') {
+    const grid = document.getElementById('aiGrid');
+    if (grid) grid.style.display = optionState[key] ? 'grid' : 'none';
+  }
+  recalculate();
+}
+
+function selectAI(id) {
+  optionState.aiPlan = id;
+  document.querySelectorAll('.ai-plan-item').forEach(el => el.classList.remove('selected'));
+  const el = document.querySelector(`.ai-plan-item[data-ai="${id}"]`);
+  if (el) el.classList.add('selected');
+  recalculate();
+}
+
+// ===== Calculation =====
+function recalculate() {
+  if (!selectedPlan) return;
+  const pid = selectedPlan.id;
+  const items = [];
+
+  // Base plan
+  items.push({
+    name: 'DirectCloud ' + planName(selectedPlan),
+    detail: selectedPlan.storage,
+    qty: 1,
+    unit: selectedPlan.price,
+    monthly: selectedPlan.price
+  });
+
+  // Hot Storage
+  if (optionState.hot) {
+    const sel = document.getElementById('hotSelect');
+    const gb = parseInt(sel.value) || 0;
+    if (gb > 0) {
+      const isEP = pid === 'ep50' || pid === 'ep100';
+      let monthly = 0;
+      if (isEP) {
+        const tb = gb / 1000;
+        monthly = tb * HOT_STORAGE_1TB[pid];
+      } else {
+        const units = gb / 500;
+        monthly = units * (HOT_STORAGE[pid] || 0);
+      }
+      items.push({ name: tr('hot.name'), detail: fmt(gb) + 'GB', qty: isEP ? gb/1000 : gb/500, unit: isEP ? HOT_STORAGE_1TB[pid] : HOT_STORAGE[pid], monthly });
+      const priceEl = document.getElementById('hotPrice');
+      if (priceEl) priceEl.textContent = fmt(monthly) + tr('plan.price_unit');
+    }
+  }
+
+  // Warm Storage
+  if (optionState.warm) {
+    const qty = parseInt(document.getElementById('warmQty')?.value) || 0;
+    if (qty > 0) {
+      let unitPrice = WARM_STORAGE[pid] || 0;
+      let subTotal = 0;
+      if (document.getElementById('warmDl')?.checked) subTotal += WARM_SUB.download[pid] || 0;
+      if (document.getElementById('warmSearch')?.checked) subTotal += WARM_SUB.search[pid] || 0;
+      if (document.getElementById('warmPreview')?.checked) subTotal += WARM_SUB.preview[pid] || 0;
+      const totalUnit = unitPrice + subTotal;
+      const monthly = totalUnit * qty;
+      items.push({ name: tr('warm.name'), detail: qty + 'TB', qty, unit: totalUnit, monthly });
+      const priceEl = document.getElementById('warmPrice');
+      if (priceEl) priceEl.textContent = fmt(monthly) + tr('plan.price_unit');
+    }
+  }
+
+  // Cold Storage
+  if (optionState.cold) {
+    const qty = parseInt(document.getElementById('coldQty')?.value) || 0;
+    if (qty > 0) {
+      const unit = COLD_STORAGE[pid] || 0;
+      const monthly = unit * qty;
+      items.push({ name: tr('cold.name'), detail: qty + 'TB', qty, unit, monthly });
+      const priceEl = document.getElementById('coldPrice');
+      if (priceEl) priceEl.textContent = fmt(monthly) + tr('plan.price_unit');
+    }
+  }
+
+  // AI
+  if (optionState.ai && optionState.aiPlan) {
+    const aiPlan = AI_PLANS.find(a => a.id === optionState.aiPlan);
+    if (aiPlan) {
+      items.push({ name: 'DirectCloud AI ' + aiPlan.name, detail: aiPlan.capacity, qty: 1, unit: aiPlan.price, monthly: aiPlan.price });
+      const priceEl = document.getElementById('aiPrice');
+      if (priceEl) priceEl.textContent = fmt(aiPlan.price) + tr('plan.price_unit');
+    }
+  }
+
+  // SHIELD IRM
+  if (optionState.irm) {
+    const users = parseInt(document.getElementById('irmUsers')?.value) || 0;
+    if (users >= 10) {
+      const tier = IRM_LADDER.find(t => users >= t.min && users <= t.max);
+      if (tier) {
+        const monthly = users * tier.unit;
+        items.push({ name: 'SHIELD IRM', detail: fmt(users) + tr('unit.user'), qty: users, unit: tier.unit, monthly });
+        const priceEl = document.getElementById('irmPrice');
+        if (priceEl) priceEl.textContent = fmt(monthly) + tr('plan.price_unit');
+      }
+    }
+  }
+
+  // SHIELD DLP
+  if (optionState.dlp) {
+    const price = parseInt(document.getElementById('dlpSelect')?.value) || 0;
+    if (price > 0) {
+      const opt = DLP_OPTIONS.find(d => d.price === price);
+      items.push({ name: 'SHIELD DLP', detail: opt ? opt.label : '', qty: 1, unit: price, monthly: price });
+      const priceEl = document.getElementById('dlpPrice');
+      if (priceEl) priceEl.textContent = fmt(price) + tr('plan.price_unit');
+    }
+  }
+
+  // MFP
+  if (optionState.mfp) {
+    const qty = parseInt(document.getElementById('mfpQty')?.value) || 0;
+    if (qty > 0) {
+      const monthly = qty * MFP_PRICE;
+      items.push({ name: tr('mfp.name'), detail: (qty * 10) + t('フォルダ','폴더'), qty, unit: MFP_PRICE, monthly });
+      const priceEl = document.getElementById('mfpPrice');
+      if (priceEl) priceEl.textContent = fmt(monthly) + tr('plan.price_unit');
+    }
+  }
+
+  // Salesforce
+  if (optionState.sf) {
+    items.push({ name: tr('sf.name'), detail: '', qty: 1, unit: SALESFORCE.business, monthly: SALESFORCE.business });
+    const priceEl = document.getElementById('sfPrice');
+    if (priceEl) priceEl.textContent = fmt(SALESFORCE.business) + tr('plan.price_unit');
+  }
+
+  // Drive Letter
+  if (optionState.dl) {
+    items.push({ name: tr('dl.name'), detail: '11→20', qty: 1, unit: DRIVE_LETTER, monthly: DRIVE_LETTER });
+    const priceEl = document.getElementById('dlPrice');
+    if (priceEl) priceEl.textContent = fmt(DRIVE_LETTER) + tr('plan.price_unit');
+  }
+
+  // Render result table
+  const tbody = document.getElementById('resultBody');
+  const total = items.reduce((s, i) => s + i.monthly, 0);
+
+  tbody.innerHTML = items.map(i => `
+    <tr>
+      <td>${i.name}</td>
+      <td>${i.detail}</td>
+      <td style="text-align:right">${i.qty}</td>
+      <td style="text-align:right">${fmt(i.unit)}${t('円','원')}</td>
+      <td style="text-align:right;font-weight:500">${fmt(i.monthly)}${t('円','원')}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('resultFoot').classList.remove('hidden');
+  document.getElementById('totalAmount').textContent = fmt(total) + t('円','원');
+  document.getElementById('resultAnnual').classList.remove('hidden');
+  document.getElementById('annualAmount').textContent = fmt(total * 12) + t('円','원');
+}
+
+// ===== Quote Issue =====
+function issueQuote() {
+  const company = document.getElementById('companyName').value.trim();
+  const name = document.getElementById('personName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  if (!company || !name || !email || !phone) {
+    alert(t('必須項目をすべて入力してください。', '필수 항목을 모두 입력해 주세요.'));
+    return;
+  }
+  if (!selectedPlan) {
+    alert(t('プランを選択してください。', '플랜을 선택해 주세요.'));
+    return;
+  }
+  alert(t(
+    'お見積書を発行しました。\nメールアドレス(' + email + ')にPDFをお送りします。\n\n※ これはデモ機能です。',
+    '견적서를 발행했습니다.\n이메일(' + email + ')로 PDF를 발송합니다.\n\n※ 데모 기능입니다.'
+  ));
+}
+
+function resetAll() {
+  selectedPlan = null;
+  optionState = {};
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('optionsBody').innerHTML = '<p class="text-muted" id="optionPlaceholder">' + TRANSLATIONS['sm.100013'][currentLang] + '</p>';
+  document.getElementById('resultBody').innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:24px;">' + TRANSLATIONS['sm.100020'][currentLang] + '</td></tr>';
+  document.getElementById('resultFoot').classList.add('hidden');
+  document.getElementById('resultAnnual').classList.add('hidden');
+  document.getElementById('companyName').value = '';
+  document.getElementById('personName').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('phone').value = '';
+}
+
+// ===== i18n Overlay =====
+(function() {
+  const toggleBtn = document.getElementById('i18n-toggle');
+  const panel = document.getElementById('i18n-panel');
+  let isActive = false;
+
+  toggleBtn.addEventListener('click', function() {
+    isActive = !isActive;
+    document.body.classList.toggle('i18n-active', isActive);
+    toggleBtn.classList.toggle('active', isActive);
+    panel.style.display = isActive ? 'block' : 'none';
+    if (isActive) showEmpty();
+  });
+
+  // 直接テキストのみ取得（子要素のテキストを除外）
+  function getDirectText(el) {
+    let text = '';
+    for (let i = 0; i < el.childNodes.length; i++) {
+      if (el.childNodes[i].nodeType === Node.TEXT_NODE) {
+        text += el.childNodes[i].textContent;
+      }
+    }
+    text = text.trim();
+    // テキストノードが空の場合は全textContentにフォールバック
+    return text || el.textContent.trim();
+  }
+
+  document.addEventListener('mouseover', function(e) {
+    if (!isActive) return;
+    const target = e.target.closest('[data-i18n]');
+    if (!target) return;
+    const code = target.getAttribute('data-i18n');
+    const status = target.getAttribute('data-i18n-status');
+    const note = target.getAttribute('data-i18n-note');
+    document.getElementById('i18nCode').textContent = code;
+    const badge = document.getElementById('i18nBadge');
+    badge.textContent = status === 'existing' ? 'EXISTING' : 'NEW';
+    badge.className = 'i18n-panel__badge ' + status;
+    const trans = document.getElementById('i18nTrans');
+    const displayText = note || getDirectText(target);
+
+    // 動的要素のi18nデータを検索
+    const dynEntry = Object.values(I18N_DYNAMIC).find(d => d.code === code);
+
+    if (status === 'existing') {
+      const staticEntry = TRANSLATIONS[code];
+      trans.innerHTML = '<div><span class="lang-label">JA</span> ' + (staticEntry ? staticEntry.ja : displayText) + '</div>'
+        + '<div><span class="lang-label">KO</span> ' + (staticEntry ? staticEntry.ko : '-') + '</div>'
+        + '<div style="color:#888;margin-top:4px">既存コード</div>';
+    } else {
+      let html = '<div style="color:#FF660D">新規登録必要</div>';
+      html += '<div><span class="lang-label">JA</span> ' + (dynEntry ? dynEntry.ja : displayText) + '</div>';
+      html += '<div><span class="lang-label">KO</span> ' + (dynEntry ? dynEntry.ko : '-') + '</div>';
+      trans.innerHTML = html;
+    }
+  });
+
+  function showEmpty() {
+    document.getElementById('i18nCode').textContent = '-';
+    document.getElementById('i18nBadge').textContent = '';
+    document.getElementById('i18nBadge').className = 'i18n-panel__badge';
+    document.getElementById('i18nTrans').innerHTML = '<div class="i18n-panel__empty">' + t('多言語要素にマウスを置いてください', '다국어 요소 위에 마우스를 올려보세요') + '</div>';
+  }
+})();
+
+// ===== Language Switching =====
+function switchLanguage(lang) {
+  currentLang = lang;
+  document.getElementById('langJA').classList.toggle('active', lang === 'ja');
+  document.getElementById('langKO').classList.toggle('active', lang === 'ko');
+  document.documentElement.lang = lang;
+  document.title = lang === 'ko' ? '간편 견적 시뮬레이션 | DirectCloud' : '簡単見積シミュレーション | DirectCloud';
+  // Save input values before re-render
+  const saved = {};
+  ['hotSelect','warmQty','coldQty','irmUsers','dlpSelect','mfpQty'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) saved[id] = el.value;
+  });
+  saved.warmDl = document.getElementById('warmDl')?.checked || false;
+  saved.warmSearch = document.getElementById('warmSearch')?.checked || false;
+  saved.warmPreview = document.getElementById('warmPreview')?.checked || false;
+  const savedAiPlan = optionState.aiPlan;
+  // Re-render plans
+  renderPlans();
+  if (selectedPlan) {
+    document.querySelector(`.plan-card[data-plan="${selectedPlan.id}"]`)?.classList.add('selected');
+    renderOptions();
+    // Restore checkboxes and sub-inputs
+    Object.keys(optionState).forEach(key => {
+      if (key === 'aiPlan') return;
+      const el = document.getElementById('opt_' + key);
+      if (el && optionState[key]) {
+        el.checked = true;
+        const inp = document.getElementById(key + 'Input');
+        if (inp) inp.style.display = 'flex';
+        if (key === 'warm') { const s = document.getElementById('warmSub'); if (s) s.style.display = 'block'; }
+        if (key === 'ai') { const g = document.getElementById('aiGrid'); if (g) g.style.display = 'grid'; }
+      }
+    });
+    Object.entries(saved).forEach(([id, val]) => {
+      if (typeof val === 'boolean') return;
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    });
+    if (saved.warmDl) { const e = document.getElementById('warmDl'); if (e) e.checked = true; }
+    if (saved.warmSearch) { const e = document.getElementById('warmSearch'); if (e) e.checked = true; }
+    if (saved.warmPreview) { const e = document.getElementById('warmPreview'); if (e) e.checked = true; }
+    if (savedAiPlan) { optionState.aiPlan = savedAiPlan; const e = document.querySelector(`.ai-plan-item[data-ai="${savedAiPlan}"]`); if (e) e.classList.add('selected'); }
+    recalculate();
+  } else {
+    const ph = document.getElementById('optionPlaceholder');
+    if (ph) ph.textContent = TRANSLATIONS['sm.100013'][currentLang];
+    const rp = document.querySelector('#resultBody td');
+    if (rp) rp.textContent = TRANSLATIONS['sm.100020'][currentLang];
+  }
+  translatePage();
+}
+
+function translatePage() {
+  // Static [data-i18n] elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const code = el.getAttribute('data-i18n');
+    const entry = TRANSLATIONS[code];
+    if (!entry || !entry[currentLang]) return;
+    const txt = entry[currentLang];
+    // Preserve child elements (e.g. <span class="required">)
+    if (el.children.length > 0 && el.childNodes[0]?.nodeType === Node.TEXT_NODE) {
+      el.childNodes[0].textContent = txt;
+    } else if (el.children.length === 0) {
+      el.textContent = txt;
+    }
+  });
+  // Required badges in form
+  document.querySelectorAll('.required').forEach(el => {
+    el.textContent = currentLang === 'ko' ? '※필수' : '※必須';
+  });
+  // Nav links
+  const navLinks = document.querySelectorAll('.header-nav > a:not(.header-cta)');
+  NAV_TEXTS[currentLang].forEach((txt, i) => { if (navLinks[i]) navLinks[i].textContent = txt; });
+  // Footer
+  document.querySelectorAll('.footer-links > div').forEach((col, ci) => {
+    const h4 = col.querySelector('h4');
+    if (h4 && FOOTER_TITLES[currentLang][ci]) h4.textContent = FOOTER_TITLES[currentLang][ci];
+    col.querySelectorAll('a').forEach((a, li) => {
+      if (FOOTER_LINKS[currentLang][ci]?.[li]) a.textContent = FOOTER_LINKS[currentLang][ci][li];
+    });
+  });
+  // User count & scope selects
+  const ucSel = document.getElementById('userCount');
+  if (ucSel) USER_COUNT_OPTS[currentLang].forEach((txt, i) => { if (ucSel.options[i]) ucSel.options[i].textContent = txt; });
+  const scSel = document.getElementById('usageScope');
+  if (scSel) SCOPE_OPTS[currentLang].forEach((txt, i) => { if (scSel.options[i]) scSel.options[i].textContent = txt; });
+  // Form placeholders
+  const ph = {
+    companyName: { ja: '株式会社ダイレクトクラウド', ko: '주식회사 다이렉트클라우드' },
+    personName: { ja: '山田 太郎', ko: '홍길동' },
+    email: { ja: 'example@company.co.jp', ko: 'example@company.co.kr' },
+    phone: { ja: '03-0000-0000', ko: '02-0000-0000' }
+  };
+  Object.entries(ph).forEach(([id, v]) => { const el = document.getElementById(id); if (el) el.placeholder = v[currentLang]; });
+  // Footer copyright
+  const copy = document.querySelector('.footer-copy');
+  if (copy) copy.innerHTML = currentLang === 'ko'
+    ? '&copy; 2026 주식회사 다이렉트클라우드 All Rights Reserved.'
+    : '&copy; 2026 株式会社ダイレクトクラウド All Rights Reserved.';
+}
+
+// ===== Init =====
+renderPlans();
+</script>
+
+<!--
+  ## Component Mapping (Mockup → Next.js)
+
+  | Mockup Element | Next.js Component | Props |
+  |----------------|-------------------|-------|
+  | [data-component="Header"] | components/layout/Header.tsx | logo, navigation, cta |
+  | [data-component="Breadcrumb"] | components/layout/Breadcrumb.tsx | items[] |
+  | [data-component="HeroBanner"] | components/simulation/HeroBanner.tsx | title, description |
+  | [data-component="PlanSelection"] | components/simulation/PlanSelection.tsx | plans[], selectedPlan, onSelect |
+  | [data-component="OptionSelection"] | components/simulation/OptionSelection.tsx | plan, options, onChange |
+  | [data-component="QuoteResult"] | components/simulation/QuoteResult.tsx | items[], total |
+  | [data-component="QuoteForm"] | components/simulation/QuoteForm.tsx | onSubmit, onCancel |
+  | [data-component="Footer"] | components/layout/Footer.tsx | links, copyright |
+
+  ## Data Architecture
+  - Pricing data should be externalized to JSON config files
+  - Plan data: /config/plans.json
+  - Option pricing: /config/options.json
+  - IRM ladder: /config/irm-ladder.json
+  - DLP options: /config/dlp-options.json
+  - AI plans: /config/ai-plans.json
+-->
+</body>
+</html>
