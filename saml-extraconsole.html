@@ -18,6 +18,10 @@ body{font-family:'Nanum Gothic',Arial,Helvetica,sans-serif;background:#fff;color
 .mockup-nav__btn:hover{border-color:#337ab7;color:#fff}
 .mockup-nav__btn.active{background:#337ab7;border-color:#337ab7;color:#fff}
 .mockup-nav__info{margin-left:auto;color:#888;font-size:10px}
+.mockup-nav__lang{display:flex;gap:4px;margin-left:12px}
+.lang-btn{padding:3px 8px;border:1px solid rgba(255,255,255,0.3);border-radius:3px;background:transparent;color:#aaa;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s}
+.lang-btn:hover{border-color:#fff;color:#fff}
+.lang-btn.active{background:#e8a735;border-color:#e8a735;color:#1a1a2e}
 
 /* ===== Screen Container ===== */
 .screen{display:none;padding-top:44px;min-height:100vh}
@@ -225,6 +229,11 @@ body.i18n-active [data-i18n-status="new"]::after{content:"NEW " attr(data-i18n);
   <button class="mockup-nav__btn" onclick="showScreen('pcweb-normal')">PC Web ログイン</button>
   <button class="mockup-nav__btn" onclick="showScreen('pcweb-sso')">PC Web SSO専用</button>
   <button class="mockup-nav__btn" onclick="showScreen('pcweb-error')">PC Web エラー</button>
+  <div class="mockup-nav__lang">
+    <button class="lang-btn active" onclick="switchLang('ja')">JA</button>
+    <button class="lang-btn" onclick="switchLang('ko')">KO</button>
+    <button class="lang-btn" onclick="switchLang('en')">EN</button>
+  </div>
   <span class="mockup-nav__info">202601014-22 | ExtraConsole Secure Network</span>
 </nav>
 
@@ -752,8 +761,11 @@ document.querySelectorAll('.mgr-menu-parent__label').forEach(function(label){
 });
 
 /* ===== i18n System ===== */
+var currentLang = 'ja';
+var I18N_ORIGINAL = {}; /* stores original innerHTML for elements with child nodes */
+
 (function() {
-  var I18N = {
+  var I18N = window.__I18N = {
     'co.100001': {ko:'파일 선택',en:'Choose File',ja:'ファイル選択'},
     'co.100002': {ko:'취소',en:'Cancel',ja:'キャンセル'},
     'co.100008': {ko:'로그인',en:'Login',ja:'ログイン'},
@@ -842,6 +854,53 @@ document.querySelectorAll('.mgr-menu-parent__label').forEach(function(label){
     document.getElementById('i18nTrans').innerHTML = '<div class="i18n-panel__empty">多言語要素にマウスを乗せてください</div>';
   }
 })();
+
+/* ===== Language Switcher ===== */
+function switchLang(lang) {
+  currentLang = lang;
+  /* Update lang buttons */
+  document.querySelectorAll('.lang-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+  });
+  /* Update all i18n elements */
+  var I18N = window.__I18N;
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var code = el.getAttribute('data-i18n');
+    var data = I18N[code];
+    if (!data) return;
+    var text = data[lang] || data.ja;
+    /* Handle input placeholders */
+    if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) {
+      el.setAttribute('placeholder', text);
+      return;
+    }
+    /* Handle elements with child elements (icons, etc.) */
+    var icons = el.querySelectorAll('i.fas, i.far, i.fab, svg');
+    if (icons.length > 0) {
+      /* Preserve icons, replace only text nodes */
+      var nodes = el.childNodes;
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].nodeType === 3) { /* text node */
+          var trimmed = nodes[i].textContent.trim();
+          if (trimmed.length > 0) {
+            nodes[i].textContent = ' ' + text;
+            break;
+          }
+        }
+      }
+      return;
+    }
+    /* Handle elements with child spans (like NEW badge) */
+    var badge = el.querySelector('.idp-badge');
+    if (badge) return; /* Skip IdP labels - they are product names */
+    /* Simple text replacement */
+    if (el.children.length === 0) {
+      el.textContent = text;
+    }
+  });
+  /* Update html lang attribute */
+  document.documentElement.setAttribute('lang', lang);
+}
 
 /* Init: trigger ExtraConsole scenario */
 onIdpChange('extraconsole');
