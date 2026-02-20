@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAML ExtraConsole - Mockup (Manager + PC Web)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ===== Reset & Base ===== */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nanum Gothic',Arial,Helvetica,sans-serif;background:#fff;color:#333;font-size:14px;line-height:1.5}
+
+/* ===== Mockup Nav (Screen Switcher) ===== */
+.mockup-nav{position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1a2e;display:flex;align-items:center;height:44px;padding:0 16px;gap:8px}
+.mockup-nav__title{color:#fff;font-size:12px;font-weight:700;margin-right:12px;white-space:nowrap}
+.mockup-nav__btn{padding:5px 14px;border:1px solid rgba(255,255,255,0.3);border-radius:3px;background:transparent;color:#ccc;font-size:11px;cursor:pointer;transition:all .2s}
+.mockup-nav__btn:hover{border-color:#337ab7;color:#fff}
+.mockup-nav__btn.active{background:#337ab7;border-color:#337ab7;color:#fff}
+.mockup-nav__info{margin-left:auto;color:#888;font-size:10px}
+
+/* ===== Screen Container ===== */
+.screen{display:none;padding-top:44px;min-height:100vh}
+.screen.active{display:block}
+
+/* ===== Scenario Switcher ===== */
+.scenario-bar{background:#f8f8f8;border-bottom:1px solid #e5e5e5;padding:6px 20px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.scenario-bar__label{font-size:10px;color:#888;font-weight:700;margin-right:4px}
+.scenario-chip{padding:3px 10px;border:1px solid #ddd;border-radius:20px;font-size:10px;cursor:pointer;color:#666;transition:all .15s;white-space:nowrap}
+.scenario-chip:hover{border-color:#337ab7;color:#337ab7}
+.scenario-chip.active{background:#337ab7;border-color:#337ab7;color:#fff}
+
+/* ==========================================
+   SCREEN 1: Manager SSO Settings
+   (Based on actual boxmanager.dev-directcloud.jp)
+   ========================================== */
+.mgr-layout{display:flex;min-height:calc(100vh - 44px)}
+
+/* --- Manager Header (actual: #22262E, 49px) --- */
+.mgr-header{background:#22262e;height:49px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:fixed;top:44px;left:0;right:0;z-index:100}
+.mgr-header__left{display:flex;align-items:center;gap:12px}
+.mgr-header__logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.mgr-header__logo img,.mgr-header__logo svg{height:26px}
+.mgr-header__logo-text{color:#fff;font-size:15px;font-weight:700;letter-spacing:-0.5px}
+.mgr-header__right{display:flex;align-items:center;gap:16px}
+.mgr-header__notify{color:#8b91a0;font-size:13px;text-decoration:none;display:flex;align-items:center;gap:4px}
+.mgr-header__notify:hover{color:#fff}
+.mgr-header__badge{background:#e74c3c;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;font-weight:700}
+.mgr-header__lang{color:#8b91a0;font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer}
+.mgr-header__lang:hover{color:#fff}
+.mgr-header__icons{display:flex;gap:8px}
+.mgr-header__icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#8b91a0;cursor:pointer;border-radius:4px}
+.mgr-header__icon:hover{background:rgba(255,255,255,0.1);color:#fff}
+
+/* --- Manager Sidebar (actual: #1B1E24, 225px) --- */
+.mgr-sidebar{width:225px;background:#1b1e24;flex-shrink:0;padding-top:49px;position:fixed;top:44px;bottom:0;left:0;overflow-y:auto;z-index:99}
+.mgr-sidebar__user{padding:12px 16px;color:#8b91a0;font-size:12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.mgr-sidebar__user i{font-size:14px}
+.mgr-sidebar__menu{padding:8px 0}
+.mgr-menu-parent{cursor:pointer}
+.mgr-menu-parent__label{display:flex;align-items:center;padding:10px 16px;gap:10px;color:#8b91a0;font-size:14px;transition:all .15s}
+.mgr-menu-parent__label:hover{color:#ddd}
+.mgr-menu-parent__label i.icon{width:20px;text-align:center;font-size:15px}
+.mgr-menu-parent__label span{flex:1}
+.mgr-menu-parent__label i.arrow{font-size:10px;transition:transform .2s}
+.mgr-menu-parent.open > .mgr-menu-parent__label{color:#fff}
+.mgr-menu-parent.open > .mgr-menu-parent__label i.arrow{transform:rotate(180deg)}
+.mgr-menu-children{display:none;padding:4px 0 4px 0}
+.mgr-menu-parent.open > .mgr-menu-children{display:block}
+.mgr-menu-child{padding:7px 16px 7px 46px;color:#8b91a0;font-size:13px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+.mgr-menu-child:hover{color:#ddd;background:rgba(255,255,255,0.03)}
+.mgr-menu-child.active{color:#fff;font-weight:700;background:rgba(255,255,255,0.05);border-left:3px solid #337ab7;padding-left:43px}
+.mgr-menu-single{display:flex;align-items:center;padding:10px 16px;gap:10px;color:#8b91a0;font-size:14px;cursor:pointer;transition:all .15s}
+.mgr-menu-single:hover{color:#ddd}
+.mgr-menu-single i{width:20px;text-align:center;font-size:15px}
+
+/* --- Manager Content --- */
+.mgr-content{flex:1;margin-left:225px;padding-top:49px;background:#fff}
+
+/* Breadcrumb (actual: #747474, 14px) */
+.mgr-breadcrumb{padding:11px 24px;font-size:14px;color:#747474;display:flex;align-items:center;gap:8px}
+.mgr-breadcrumb a{color:#747474;text-decoration:none}
+.mgr-breadcrumb a:hover{color:#333}
+.mgr-breadcrumb i.fa-home{font-size:13px}
+
+/* --- SAML Section (actual layout) --- */
+.saml-section{margin:0 24px 24px}
+.saml-header{background:#353d4b;color:#fff;font-size:14px;font-weight:400;padding:10px 16px;margin-bottom:0}
+.saml-body{border:1px solid #ddd;border-top:none}
+
+/* Form Row (actual: label ~160px right-aligned, 13px) */
+.saml-row{display:flex;padding:16px 20px;border-bottom:1px solid #eee;align-items:flex-start}
+.saml-row:last-child{border-bottom:none}
+.saml-label{width:160px;flex-shrink:0;text-align:right;padding-right:24px;font-size:13px;color:#333;padding-top:2px}
+.saml-value{flex:1;font-size:13px}
+
+/* Checkbox (actual style) */
+.saml-checkbox{display:flex;align-items:center;gap:8px;cursor:pointer}
+.saml-checkbox input[type="checkbox"]{width:16px;height:16px;cursor:pointer}
+.saml-checkbox label{cursor:pointer;font-size:13px}
+
+/* Radio buttons (actual style) */
+.saml-radio{display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer}
+.saml-radio:last-child{margin-bottom:0}
+.saml-radio input[type="radio"]{width:16px;height:16px;cursor:pointer;accent-color:#337ab7}
+.saml-radio label{cursor:pointer;font-size:13px}
+.saml-radio .new-badge{display:inline-block;font-size:9px;background:#ff6b35;color:#fff;padding:1px 6px;border-radius:3px;font-weight:700;margin-left:6px;vertical-align:middle}
+
+/* File upload (actual style) */
+.saml-file{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.saml-file__btn{padding:5px 12px;border:1px solid #ccc;border-radius:3px;background:#fff;font-size:12px;cursor:pointer;color:#333}
+.saml-file__btn:hover{background:#f5f5f5}
+.saml-file__name{font-size:12px;color:#666}
+.saml-file__example{display:flex;align-items:center;gap:4px;font-size:11px;color:#666;margin-top:4px}
+.saml-file__example .ex-badge{background:#5bc0de;color:#fff;padding:1px 4px;border-radius:2px;font-size:9px;font-weight:700}
+
+/* Info icon (actual style) */
+.info-icon{display:inline-block;width:16px;height:16px;border-radius:50%;background:#5bc0de;color:#fff;font-size:10px;text-align:center;line-height:16px;cursor:help;margin-left:4px}
+
+/* Capacity input */
+.capacity-wrap{display:flex;align-items:center;gap:4px}
+.capacity-input{width:120px;padding:6px 10px;border:1px solid #ccc;border-radius:3px;font-size:13px;text-align:right}
+.capacity-unit{font-size:13px;color:#333;padding:6px 8px;background:#eee;border:1px solid #ccc;border-left:none;border-radius:0 3px 3px 0}
+
+/* Save button (actual: #337AB7, 2px radius) */
+.saml-save{padding:16px 20px;display:flex;justify-content:flex-start}
+.btn-save{padding:6px 12px;background:#337ab7;color:#fff;border:none;border-radius:2px;font-size:14px;cursor:pointer;transition:background .15s}
+.btn-save:hover{background:#286090}
+
+/* SP Info section (read-only fields for IdP registration) */
+.sp-info{margin:16px 24px 24px;border:1px solid #ddd;border-radius:4px}
+.sp-info__header{background:#f5f5f5;padding:10px 16px;border-bottom:1px solid #ddd;font-size:13px;font-weight:700;color:#333;display:flex;align-items:center;gap:8px}
+.sp-info__header i{color:#337ab7}
+.sp-info__body{padding:0}
+.sp-info__row{display:flex;padding:10px 16px;border-bottom:1px solid #eee;align-items:center}
+.sp-info__row:last-child{border-bottom:none}
+.sp-info__label{width:100px;flex-shrink:0;font-size:12px;font-weight:700;color:#555}
+.sp-info__value{flex:1;font-size:11px;font-family:'Noto Sans JP',monospace;color:#555;word-break:break-all;padding:4px 8px;background:#f8f8f8;border:1px solid #eee;border-radius:2px}
+.sp-info__copy{padding:4px 10px;background:#fff;border:1px solid #ccc;border-radius:2px;font-size:11px;cursor:pointer;color:#666;margin-left:8px;white-space:nowrap}
+.sp-info__copy:hover{border-color:#337ab7;color:#337ab7}
+.sp-info__copy.copied{background:#dff0d8;border-color:#3c763d;color:#3c763d}
+
+/* Warning box */
+.warn-box{background:#fcf8e3;border:1px solid #faebcc;border-radius:2px;padding:10px 14px;font-size:12px;color:#8a6d3b;display:flex;align-items:flex-start;gap:8px;margin:0 24px 16px}
+.warn-box i{margin-top:1px}
+
+/* Info box */
+.info-box-blue{background:#d9edf7;border:1px solid #bce8f1;border-radius:2px;padding:8px 12px;font-size:12px;color:#31708f;display:flex;align-items:flex-start;gap:6px;margin-top:8px}
+
+/* Divider for ExtraConsole conditional sections */
+.conditional-hide{display:none}
+
+/* ==========================================
+   SCREEN 2-4: PC Web Login
+   (Based on actual web.dev-directcloud.jp)
+   ========================================== */
+.pcweb-wrapper{display:flex;min-height:calc(100vh - 44px)}
+.pcweb-left{flex:0 0 480px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px}
+.pcweb-right{flex:1;background:linear-gradient(135deg,#4da0e8 0%,#2980b9 100%);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.pcweb-right__bg{position:absolute;inset:0;opacity:.15;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat}
+.pcweb-right__content{position:relative;z-index:1;text-align:center;color:#fff}
+.pcweb-right__content h2{font-size:28px;font-weight:700;margin-bottom:12px}
+.pcweb-right__content p{font-size:14px;opacity:.9}
+.pcweb-logo{margin-bottom:36px}
+
+/* Login Form (actual: #3790d9, Open Sans, input 46px, btn 52px, radius 5px/4px) */
+.login-box{width:340px}
+.login-box__input{width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:4px;font-size:14px;font-family:'Open Sans','BIZ UDPGothic',sans-serif;margin-bottom:12px;outline:none;transition:border-color .15s;height:46px}
+.login-box__input:focus{border-color:#3790d9}
+.login-box__input::placeholder{color:#aaa}
+.login-box__btn{width:100%;height:52px;background:#3790d9;color:#fff;border:none;border-radius:5px;font-size:18px;font-family:'Open Sans','BIZ UDPGothic',sans-serif;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s}
+.login-box__btn:hover{background:#2d7fc4}
+.login-box__options{margin-top:12px;font-size:13px}
+.login-box__options a{color:#3790d9;text-decoration:none;cursor:pointer}
+.login-box__options a:hover{text-decoration:underline}
+.login-box__divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:#ccc;font-size:12px}
+.login-box__divider::before,.login-box__divider::after{content:'';flex:1;border-top:1px solid #e5e5e5}
+
+/* SSO Only Mode */
+.sso-only-box{width:340px;text-align:center}
+.sso-only-box__title{font-size:16px;font-weight:700;margin-bottom:20px;color:#333}
+
+/* Error cards */
+.error-card{background:#fff;border-radius:8px;padding:32px;text-align:center;max-width:400px;margin:40px auto;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.error-card__icon{width:64px;height:64px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.error-card__icon.error{background:#f2dede;color:#a94442}
+.error-card__icon.warn{background:#fcf8e3;color:#8a6d3b}
+.error-card__title{font-size:16px;font-weight:700;margin-bottom:8px;color:#333}
+.error-card__msg{font-size:13px;color:#666;margin-bottom:20px;line-height:1.6}
+.error-card__btn{display:inline-block;padding:8px 24px;background:#337ab7;color:#fff;border:none;border-radius:2px;font-size:13px;cursor:pointer;text-decoration:none}
+.error-card__btn:hover{background:#286090}
+
+/* ===== Toast ===== */
+.toast{position:fixed;top:56px;right:20px;padding:10px 18px;border-radius:4px;font-size:13px;color:#fff;z-index:10000;opacity:0;transform:translateY(-10px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:#3c763d}
+.toast.info{background:#31708f}
+
+/* ===== i18n System ===== */
+body.i18n-active [data-i18n]{outline:1px dashed rgba(51,122,183,0.5);outline-offset:2px;cursor:help;position:relative}
+body.i18n-active [data-i18n-status="existing"]::after{content:attr(data-i18n);position:absolute;top:-8px;right:-4px;font-size:8px;font-family:monospace;background:#d9edf7;color:#31708f;padding:1px 4px;border-radius:2px;white-space:nowrap;pointer-events:none;line-height:1.2;z-index:10000}
+body.i18n-active [data-i18n-status="new"]::after{content:"NEW " attr(data-i18n);position:absolute;top:-8px;right:-4px;font-size:8px;font-family:monospace;background:#fcf8e3;color:#8a6d3b;padding:1px 4px;border-radius:2px;white-space:nowrap;pointer-events:none;line-height:1.2;z-index:10000}
+.i18n-fab{position:fixed;bottom:20px;right:20px;width:44px;height:44px;border-radius:50%;border:2px solid #ddd;background:#fff;color:#888;font-size:10px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.12);z-index:10001;transition:all .2s}
+.i18n-fab:hover{border-color:#337ab7;color:#337ab7}
+.i18n-fab.active{background:#337ab7;color:#fff;border-color:#337ab7}
+.i18n-panel{position:fixed;bottom:76px;right:20px;width:300px;max-height:260px;background:#fff;border:1px solid #e5e5e5;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:10001;overflow:hidden;display:none}
+.i18n-panel__header{padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+.i18n-panel__title{font-size:12px;font-weight:700;color:#333}
+.i18n-panel__badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.i18n-panel__badge.existing{background:#d9edf7;color:#31708f}
+.i18n-panel__badge.new{background:#fcf8e3;color:#8a6d3b}
+.i18n-panel__body{padding:10px 14px;overflow-y:auto;max-height:200px}
+.i18n-panel__code{font-family:monospace;font-size:14px;font-weight:700;margin-bottom:6px;color:#333}
+.i18n-panel__translations{font-size:11px;line-height:1.6;color:#555}
+.i18n-panel__translations .lang-label{display:inline-block;width:22px;font-weight:700;color:#888}
+.i18n-panel__empty{color:#aaa;font-size:11px;text-align:center;padding:12px 0}
+</style>
+</head>
+<body>
+
+<!-- ===== Mockup Navigation ===== -->
+<nav class="mockup-nav">
+  <span class="mockup-nav__title">SAML ExtraConsole Mockup</span>
+  <button class="mockup-nav__btn active" onclick="showScreen('manager')">Manager SSO連携</button>
+  <button class="mockup-nav__btn" onclick="showScreen('pcweb-normal')">PC Web ログイン</button>
+  <button class="mockup-nav__btn" onclick="showScreen('pcweb-sso')">PC Web SSO専用</button>
+  <button class="mockup-nav__btn" onclick="showScreen('pcweb-error')">PC Web エラー</button>
+  <span class="mockup-nav__info">202601014-22 | ExtraConsole Secure Network</span>
+</nav>
+
+<!-- ==========================================
+     SCREEN 1: Manager SSO Settings
+     (Pixel-matched to actual Manager UI)
+     ========================================== -->
+<div class="screen active" id="screen-manager">
+  <!-- Scenario Switcher -->
+  <div class="scenario-bar" style="margin-top:0">
+    <span class="scenario-bar__label">シナリオ:</span>
+    <span class="scenario-chip active" onclick="mgrScenario('extraconsole')">ExtraConsole設定</span>
+    <span class="scenario-chip" onclick="mgrScenario('saved')">本番設定済み</span>
+    <span class="scenario-chip" onclick="mgrScenario('siteminder')">既存SiteMinder</span>
+  </div>
+
+  <!-- Manager Header -->
+  <div class="mgr-header">
+    <div class="mgr-header__left">
+      <a class="mgr-header__logo" href="#">
+        <svg viewBox="0 0 26 26" width="26" height="26"><circle cx="13" cy="13" r="13" fill="#3790d9"/><path d="M9 8 C9 8 7 13 13 17 C19 13 17 8 17 8" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="13" cy="10" r="2" fill="#fff"/></svg>
+        <span class="mgr-header__logo-text">DirectCloud</span>
+      </a>
+    </div>
+    <div class="mgr-header__right">
+      <a class="mgr-header__notify" href="#"><i class="fas fa-paper-plane"></i> お知らせ <span class="mgr-header__badge">316</span></a>
+      <span class="mgr-header__lang"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='11'%3E%3Crect fill='%23fff' width='16' height='11'/%3E%3Crect fill='%23bc002d' x='5.5' y='3' width='5' height='5' rx='2.5'/%3E%3C/svg%3E" width="16" height="11"> 日本語 <i class="fas fa-caret-down"></i></span>
+      <div class="mgr-header__icons">
+        <div class="mgr-header__icon"><i class="fas fa-question-circle"></i></div>
+        <div class="mgr-header__icon"><i class="fas fa-bars"></i></div>
+        <div class="mgr-header__icon"><i class="fas fa-sign-out-alt"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mgr-layout">
+    <!-- Sidebar -->
+    <aside class="mgr-sidebar">
+      <div class="mgr-sidebar__user"><i class="fas fa-user-circle"></i> admin(aoyamagakuin)</div>
+      <div class="mgr-sidebar__menu">
+        <div class="mgr-menu-single"><i class="fas fa-list-check"></i> <span data-i18n="ma.100001" data-i18n-status="new">全機能一覧</span></div>
+        <div class="mgr-menu-parent">
+          <div class="mgr-menu-parent__label"><i class="icon fas fa-shield-halved"></i> <span data-i18n="ma.100002" data-i18n-status="new">セキュリティ</span> <i class="arrow fas fa-caret-down"></i></div>
+          <div class="mgr-menu-children"></div>
+        </div>
+        <div class="mgr-menu-parent open">
+          <div class="mgr-menu-parent__label"><i class="icon fas fa-users"></i> <span data-i18n="ma.100003" data-i18n-status="new">ユーザー</span> <i class="arrow fas fa-caret-down"></i></div>
+          <div class="mgr-menu-children">
+            <div class="mgr-menu-child" data-i18n="ma.100004" data-i18n-status="new">ユーザー管理</div>
+            <div class="mgr-menu-child" data-i18n="ma.100005" data-i18n-status="new">ゲスト管理</div>
+            <div class="mgr-menu-child active" data-i18n="ma.100006" data-i18n-status="new"><i class="fas fa-key" style="font-size:11px"></i> SSO連携</div>
+            <div class="mgr-menu-child" data-i18n="ma.100007" data-i18n-status="new">管理者</div>
+          </div>
+        </div>
+        <div class="mgr-menu-parent">
+          <div class="mgr-menu-parent__label"><i class="icon fas fa-cog"></i> <span>環境設定</span> <i class="arrow fas fa-caret-down"></i></div>
+          <div class="mgr-menu-children"></div>
+        </div>
+        <div class="mgr-menu-parent">
+          <div class="mgr-menu-parent__label"><i class="icon fas fa-check-double"></i> <span>承認ワークフロー</span> <i class="arrow fas fa-caret-down"></i></div>
+          <div class="mgr-menu-children"></div>
+        </div>
+        <div class="mgr-menu-parent">
+          <div class="mgr-menu-parent__label"><i class="icon fas fa-database"></i> <span>ストレージ</span> <i class="arrow fas fa-caret-down"></i></div>
+          <div class="mgr-menu-children"></div>
+        </div>
+        <div class="mgr-menu-parent">
+          <div class="mgr-menu-parent__label"><i class="icon fas fa-virus-slash"></i> <span>ランサムウェア対策</span> <i class="arrow fas fa-caret-down"></i></div>
+          <div class="mgr-menu-children"></div>
+        </div>
+        <div class="mgr-menu-parent">
+          <div class="mgr-menu-parent__label"><i class="icon fas fa-chart-bar"></i> <span>ログ</span> <i class="arrow fas fa-caret-down"></i></div>
+          <div class="mgr-menu-children"></div>
+        </div>
+        <div class="mgr-menu-parent">
+          <div class="mgr-menu-parent__label"><i class="icon fas fa-robot"></i> <span>DirectCloud AI</span> <i class="arrow fas fa-caret-down"></i></div>
+          <div class="mgr-menu-children"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <div class="mgr-content">
+      <!-- Breadcrumb -->
+      <div class="mgr-breadcrumb">
+        <a href="#"><i class="fas fa-home"></i></a> / <span>ユーザー</span> / <span data-i18n="ma.100008" data-i18n-status="new">SSO連携</span>
+      </div>
+
+      <!-- SAML Section -->
+      <div class="saml-section">
+        <div class="saml-header" data-i18n="ma.100009" data-i18n-status="new">SAML</div>
+        <div class="saml-body">
+          <!-- SAML 2.0 連携 -->
+          <div class="saml-row">
+            <div class="saml-label" data-i18n="ma.100010" data-i18n-status="new">SAML 2.0 連携</div>
+            <div class="saml-value">
+              <label class="saml-checkbox"><input type="checkbox" id="samlEnabled" checked onchange="onSamlToggle()"> <span data-i18n="ma.100011" data-i18n-status="new">使用する</span></label>
+            </div>
+          </div>
+
+          <!-- IdP (Radio buttons - matching actual UI) -->
+          <div class="saml-row">
+            <div class="saml-label">IdP</div>
+            <div class="saml-value" id="idpRadios">
+              <div class="saml-radio"><input type="radio" name="idp" value="azure" id="idp-azure"><label for="idp-azure"> Microsoft Entra ID</label></div>
+              <div class="saml-radio"><input type="radio" name="idp" value="gsuite" id="idp-gsuite"><label for="idp-gsuite"> Google Workspace</label></div>
+              <div class="saml-radio"><input type="radio" name="idp" value="sateraito" id="idp-sateraito"><label for="idp-sateraito"> Sateraito Office / NextSet</label></div>
+              <div class="saml-radio"><input type="radio" name="idp" value="extraconsole" id="idp-extraconsole" checked onchange="onIdpChange('extraconsole')"><label for="idp-extraconsole"> ExtraConsole Secure Network</label><span class="new-badge">NEW</span></div>
+            </div>
+          </div>
+
+          <!-- SAML 証明書 -->
+          <div class="saml-row">
+            <div class="saml-label" data-i18n="ma.100012" data-i18n-status="new">SAML 証明書</div>
+            <div class="saml-value">
+              <div class="saml-file">
+                <button class="saml-file__btn" onclick="simulateUpload()" data-i18n="co.100001" data-i18n-status="existing">ファイル選択</button>
+                <span class="saml-file__name" id="xmlFileName">agtestmetadata.xml</span>
+              </div>
+              <div class="saml-file__example"><span class="ex-badge">EX</span> saml.XML</div>
+            </div>
+          </div>
+
+          <!-- ログインアカウント -->
+          <div class="saml-row">
+            <div class="saml-label" data-i18n="ma.100013" data-i18n-status="new">ログインアカウント</div>
+            <div class="saml-value">
+              <div class="saml-radio"><input type="radio" name="loginAccount" value="sso-only" id="la-sso"><label for="la-sso" data-i18n="ma.100014" data-i18n-status="new"> IdPのアカウントのみ使用</label></div>
+              <div class="saml-radio"><input type="radio" name="loginAccount" value="both" id="la-both" checked><label for="la-both" data-i18n="ma.100015" data-i18n-status="new"> IdPとDirectCloudの両方のアカウントを使用</label></div>
+            </div>
+          </div>
+
+          <!-- ログアウト時の処理 -->
+          <div class="saml-row">
+            <div class="saml-label" data-i18n="ma.100016" data-i18n-status="new">ログアウト時の処理</div>
+            <div class="saml-value">
+              <div class="saml-radio"><input type="radio" name="logout" value="dc-only" id="lo-dc" checked><label for="lo-dc" data-i18n="ma.100017" data-i18n-status="new"> DirectCloudのみログアウト</label></div>
+              <div class="saml-radio"><input type="radio" name="logout" value="both" id="lo-both" disabled><label for="lo-both" style="color:#999" data-i18n="ma.100018" data-i18n-status="new"> DirectCloudとIdPの両方からログアウト</label><span class="info-icon" title="ExtraConsoleではIdPログアウト非対応">i</span></div>
+            </div>
+          </div>
+
+          <!-- JITプロビジョニング (hidden for ExtraConsole) -->
+          <div class="saml-row" id="jitRow" style="display:none">
+            <div class="saml-label">JITプロビジョニング</div>
+            <div class="saml-value">
+              <div class="saml-radio"><input type="radio" name="jit" value="on" id="jit-on" checked><label for="jit-on"> 有効</label></div>
+              <div class="saml-radio"><input type="radio" name="jit" value="off" id="jit-off"><label for="jit-off"> 無効</label></div>
+            </div>
+          </div>
+
+          <!-- 容量 (hidden for ExtraConsole) -->
+          <div class="saml-row" id="capacityRow" style="display:none">
+            <div class="saml-label">容量 <span class="info-icon" title="JITプロビジョニングで作成されるユーザーの初期容量">i</span></div>
+            <div class="saml-value">
+              <div class="capacity-wrap">
+                <input type="text" class="capacity-input" value="1024">
+                <span class="capacity-unit">MB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save button -->
+        <div class="saml-save">
+          <button class="btn-save" onclick="saveSsoSettings()" data-i18n="co.100026" data-i18n-status="existing">保存</button>
+        </div>
+      </div>
+
+      <!-- SP Information (shown for ExtraConsole) -->
+      <div class="sp-info" id="spInfoSection">
+        <div class="sp-info__header"><i class="fas fa-server"></i> <span data-i18n="ma.100019" data-i18n-status="new">SP情報（IdPへの登録用）</span></div>
+        <div class="sp-info__body">
+          <div class="sp-info__row">
+            <div class="sp-info__label">Entity ID</div>
+            <div class="sp-info__value" id="entityId">dc-extraconsole-extraconsole_test</div>
+            <button class="sp-info__copy" onclick="copyField('entityId',this)" data-i18n="co.100010" data-i18n-status="existing">コピー</button>
+          </div>
+          <div class="sp-info__row">
+            <div class="sp-info__label">ACS URL</div>
+            <div class="sp-info__value" id="acsUrl">https://api.dev-directcloud.jp/simplesaml/module.php/saml/sp/saml2-acs.php/dc-extraconsole-extraconsole_test</div>
+            <button class="sp-info__copy" onclick="copyField('acsUrl',this)" data-i18n="co.100010" data-i18n-status="existing">コピー</button>
+          </div>
+          <div class="sp-info__row">
+            <div class="sp-info__label">Login URL</div>
+            <div class="sp-info__value" id="loginUrl">https://api.dev-directcloud.jp/simplesaml/module.php/saml/sp/saml2-acs.php/dc-extraconsole-extraconsole_test</div>
+            <button class="sp-info__copy" onclick="copyField('loginUrl',this)" data-i18n="co.100010" data-i18n-status="existing">コピー</button>
+          </div>
+          <div class="sp-info__row">
+            <div class="sp-info__label">Access URL</div>
+            <div class="sp-info__value" id="accessUrl">https://web.dev-directcloud.jp/sso?code=extraconsole_test</div>
+            <button class="sp-info__copy" onclick="copyField('accessUrl',this)" data-i18n="co.100010" data-i18n-status="existing">コピー</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch warning -->
+      <div class="warn-box" id="batchWarn">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span data-i18n="ma.100020" data-i18n-status="new">設定保存後、renew_saml.phpバッチの実行により反映されます（最大5分）。</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     SCREEN 2: PC Web Login (SSO + Normal)
+     ========================================== -->
+<div class="screen" id="screen-pcweb-normal">
+  <div class="scenario-bar">
+    <span class="scenario-bar__label">シナリオ:</span>
+    <span class="scenario-chip active" onclick="pcwebScenario('login')">通常ログイン画面</span>
+    <span class="scenario-chip" onclick="pcwebScenario('sso-dialog')">SSOダイアログ</span>
+    <span class="scenario-chip" onclick="pcwebScenario('sso-redirect')">IdPリダイレクト中</span>
+  </div>
+  <div class="pcweb-wrapper">
+    <div class="pcweb-left">
+      <div class="pcweb-logo">
+        <svg viewBox="0 0 200 48" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="20" fill="#3790d9"/>
+          <path d="M17 16 C17 16 14 24 24 30 C34 24 31 16 31 16" stroke="#fff" stroke-width="2" fill="none"/>
+          <circle cx="24" cy="19" r="3" fill="#fff"/>
+          <text x="52" y="30" font-family="'Open Sans',sans-serif" font-size="20" font-weight="700" fill="#333">DirectCloud</text>
+        </svg>
+      </div>
+
+      <!-- Login Form -->
+      <div class="login-box" id="loginNormal">
+        <input class="login-box__input" type="text" placeholder="会社コード（グループID）" data-i18n="lo.100001" data-i18n-status="new">
+        <input class="login-box__input" type="text" placeholder="ユーザーID" data-i18n="lo.100002" data-i18n-status="new">
+        <input class="login-box__input" type="password" placeholder="パスワード" data-i18n="lo.100003" data-i18n-status="new">
+        <button class="login-box__btn" data-i18n="co.100008" data-i18n-status="existing"><i class="fas fa-lock"></i> ログイン</button>
+        <div class="login-box__options" style="margin-top:12px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:8px">
+            <input type="checkbox" checked> <span data-i18n="lo.100004" data-i18n-status="new">ログイン状態を維持</span>
+          </label>
+          <a data-i18n="lo.100005" data-i18n-status="new">パスワードをお忘れの方</a><br>
+          <a onclick="showSsoDialog()" style="color:#3790d9;cursor:pointer" data-i18n="lo.100006" data-i18n-status="new">SSOでログイン</a>
+        </div>
+      </div>
+
+      <!-- SSO Dialog -->
+      <div id="ssoDialog" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:6px;width:420px;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+          <div style="padding:14px 18px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:15px;font-weight:700" data-i18n="lo.100007" data-i18n-status="new">SSO使用可否確認</span>
+            <button onclick="hideSsoDialog()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#999">&times;</button>
+          </div>
+          <div style="padding:18px">
+            <p style="font-size:13px;color:#666;margin-bottom:14px" data-i18n="lo.100008" data-i18n-status="new">お客様の会社でSSOを設定済みの場合、SSOログイン画面に移動します。</p>
+            <input class="login-box__input" type="text" placeholder="会社コード（グループID）を入力" id="ssoCompanyCode" oninput="checkSsoCode()">
+            <button class="login-box__btn" id="ssoConfirmBtn" disabled style="opacity:0.5" onclick="redirectToIdp()" data-i18n="lo.100009" data-i18n-status="new">確認</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SSO Redirect -->
+      <div id="ssoRedirect" style="display:none;text-align:center">
+        <div style="margin-bottom:16px"><i class="fas fa-circle-notch fa-spin fa-2x" style="color:#3790d9"></i></div>
+        <p style="font-size:14px;color:#333;font-weight:500" data-i18n="lo.100010" data-i18n-status="new">ExtraConsole認証画面へ移動しています...</p>
+        <p style="font-size:12px;color:#999;margin-top:8px" data-i18n="lo.100011" data-i18n-status="new">しばらくお待ちください。</p>
+      </div>
+    </div>
+    <div class="pcweb-right">
+      <div class="pcweb-right__bg"></div>
+      <div class="pcweb-right__content"><h2>DirectCloud</h2><p>Secure File Sharing for Enterprise</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     SCREEN 3: PC Web Login (SSO Only)
+     ========================================== -->
+<div class="screen" id="screen-pcweb-sso">
+  <div class="scenario-bar">
+    <span class="scenario-bar__label">azure_login_limit = 'Y'</span>
+    <span class="scenario-chip active">SSO専用モード</span>
+  </div>
+  <div class="pcweb-wrapper">
+    <div class="pcweb-left">
+      <div class="pcweb-logo">
+        <svg viewBox="0 0 200 48" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="20" fill="#3790d9"/>
+          <path d="M17 16 C17 16 14 24 24 30 C34 24 31 16 31 16" stroke="#fff" stroke-width="2" fill="none"/>
+          <circle cx="24" cy="19" r="3" fill="#fff"/>
+          <text x="52" y="30" font-family="'Open Sans',sans-serif" font-size="20" font-weight="700" fill="#333">DirectCloud</text>
+        </svg>
+      </div>
+      <div class="sso-only-box">
+        <div class="sso-only-box__title" data-i18n="lo.100012" data-i18n-status="new">DirectCloud ログイン</div>
+        <input class="login-box__input" type="text" placeholder="会社コード（グループID）" style="text-align:left">
+        <button class="login-box__btn" data-i18n="lo.100013" data-i18n-status="new"><i class="fas fa-right-to-bracket"></i> SSOでログイン</button>
+      </div>
+    </div>
+    <div class="pcweb-right">
+      <div class="pcweb-right__bg"></div>
+      <div class="pcweb-right__content"><h2>DirectCloud</h2><p>Secure File Sharing for Enterprise</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     SCREEN 4: PC Web Error States
+     ========================================== -->
+<div class="screen" id="screen-pcweb-error">
+  <div class="scenario-bar">
+    <span class="scenario-bar__label">エラー状態:</span>
+    <span class="scenario-chip active" onclick="showError('not-found')">ユーザー未登録</span>
+    <span class="scenario-chip" onclick="showError('saml-invalid')">SAML無効</span>
+    <span class="scenario-chip" onclick="showError('saml-expired')">有効期限切れ</span>
+    <span class="scenario-chip" onclick="showError('idp-unreachable')">IdP接続失敗</span>
+  </div>
+  <div style="background:#f0f2f5;min-height:calc(100vh - 88px);padding-top:40px">
+    <div class="error-card" id="error-not-found">
+      <div class="error-card__icon error"><i class="fas fa-user-xmark"></i></div>
+      <div class="error-card__title" data-i18n="lo.100014" data-i18n-status="new">ユーザーが見つかりません</div>
+      <div class="error-card__msg" data-i18n="lo.100015" data-i18n-status="new">ユーザーが見つかりません。管理者にお問い合わせください。</div>
+      <a class="error-card__btn" data-i18n="lo.100016" data-i18n-status="new">ログイン画面に戻る</a>
+    </div>
+    <div class="error-card" id="error-saml-invalid" style="display:none">
+      <div class="error-card__icon error"><i class="fas fa-shield-xmark"></i></div>
+      <div class="error-card__title" data-i18n="lo.100017" data-i18n-status="new">認証に失敗しました</div>
+      <div class="error-card__msg" data-i18n="lo.100018" data-i18n-status="new">認証に失敗しました。再度お試しください。</div>
+      <a class="error-card__btn" data-i18n="lo.100016" data-i18n-status="existing">ログイン画面に戻る</a>
+    </div>
+    <div class="error-card" id="error-saml-expired" style="display:none">
+      <div class="error-card__icon warn"><i class="fas fa-clock"></i></div>
+      <div class="error-card__title" data-i18n="lo.100019" data-i18n-status="new">有効期限切れ</div>
+      <div class="error-card__msg" data-i18n="lo.100020" data-i18n-status="new">認証の有効期限が切れました。再度ログインしてください。</div>
+      <a class="error-card__btn" data-i18n="lo.100021" data-i18n-status="new">再度ログイン</a>
+    </div>
+    <div class="error-card" id="error-idp-unreachable" style="display:none">
+      <div class="error-card__icon error"><i class="fas fa-server"></i></div>
+      <div class="error-card__title" data-i18n="lo.100022" data-i18n-status="new">認証サーバーに接続できません</div>
+      <div class="error-card__msg" data-i18n="lo.100023" data-i18n-status="new">認証サーバーに接続できません。しばらく後に再度お試しください。</div>
+      <a class="error-card__btn" data-i18n="lo.100021" data-i18n-status="existing">再度ログイン</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Toast ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== i18n Panel ===== -->
+<button id="i18n-toggle" class="i18n-fab" title="i18n コード表示">i18n</button>
+<div id="i18n-panel" class="i18n-panel">
+  <div class="i18n-panel__header">
+    <span class="i18n-panel__title">i18n Code Info</span>
+    <span class="i18n-panel__badge" id="i18nBadge"></span>
+  </div>
+  <div class="i18n-panel__body">
+    <div class="i18n-panel__code" id="i18nCode">-</div>
+    <div class="i18n-panel__translations" id="i18nTrans">
+      <div class="i18n-panel__empty">多言語要素にマウスを乗せてください</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Screen Navigation ===== */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
+  document.querySelectorAll('.mockup-nav__btn').forEach(function(b){b.classList.remove('active')});
+  var map = {'manager':'screen-manager','pcweb-normal':'screen-pcweb-normal','pcweb-sso':'screen-pcweb-sso','pcweb-error':'screen-pcweb-error'};
+  document.getElementById(map[id]).classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* ===== Copy Field ===== */
+function copyField(fieldId, btn) {
+  var text = document.getElementById(fieldId).textContent;
+  navigator.clipboard.writeText(text).then(function(){
+    btn.classList.add('copied');
+    btn.innerHTML = '<i class="fas fa-check"></i> コピー済み';
+    setTimeout(function(){btn.classList.remove('copied');btn.textContent='コピー';}, 2000);
+  });
+}
+
+/* ===== SAML Toggle ===== */
+function onSamlToggle() {
+  /* In real UI, enabling/disabling shows/hides IdP fields */
+}
+
+/* ===== IdP Change ===== */
+function onIdpChange(value) {
+  var jitRow = document.getElementById('jitRow');
+  var capacityRow = document.getElementById('capacityRow');
+  var spInfo = document.getElementById('spInfoSection');
+  var logoutBoth = document.getElementById('lo-both');
+
+  if (value === 'extraconsole' || value === 'siteminder') {
+    /* ExtraConsole/SiteMinder: No JIT, No capacity, No IdP logout */
+    jitRow.style.display = 'none';
+    capacityRow.style.display = 'none';
+    logoutBoth.disabled = true;
+    logoutBoth.parentElement.querySelector('label').style.color = '#999';
+    document.getElementById('lo-dc').checked = true;
+    spInfo.style.display = 'block';
+  } else if (value === 'azure' || value === 'azuregroup') {
+    /* Azure: Full features */
+    jitRow.style.display = 'flex';
+    capacityRow.style.display = 'flex';
+    logoutBoth.disabled = false;
+    logoutBoth.parentElement.querySelector('label').style.color = '#333';
+    spInfo.style.display = 'block';
+  } else {
+    /* Others: No JIT, No capacity */
+    jitRow.style.display = 'none';
+    capacityRow.style.display = 'none';
+    logoutBoth.disabled = false;
+    logoutBoth.parentElement.querySelector('label').style.color = '#333';
+    spInfo.style.display = 'block';
+  }
+}
+
+/* ===== File Upload Simulation ===== */
+function simulateUpload() { showToast('ファイルを選択してください (デモ)', 'info'); }
+
+/* ===== Save Settings ===== */
+function saveSsoSettings() { showToast('設定を保存しました。', 'success'); }
+
+/* ===== Manager Scenarios ===== */
+function mgrScenario(type) {
+  document.querySelectorAll('#screen-manager .scenario-chip').forEach(function(c){c.classList.remove('active')});
+  event.target.classList.add('active');
+
+  var idpRadios = document.querySelectorAll('input[name="idp"]');
+  var xmlName = document.getElementById('xmlFileName');
+  var entityId = document.getElementById('entityId');
+  var acsUrl = document.getElementById('acsUrl');
+  var loginUrl = document.getElementById('loginUrl');
+  var accessUrl = document.getElementById('accessUrl');
+  var samlCheck = document.getElementById('samlEnabled');
+  var laSSO = document.getElementById('la-sso');
+  var laBoth = document.getElementById('la-both');
+
+  if (type === 'extraconsole') {
+    samlCheck.checked = true;
+    idpRadios.forEach(function(r){r.checked = r.value==='extraconsole'});
+    xmlName.textContent = 'agtestmetadata.xml';
+    entityId.textContent = 'dc-extraconsole-extraconsole_test';
+    acsUrl.textContent = 'https://api.dev-directcloud.jp/simplesaml/module.php/saml/sp/saml2-acs.php/dc-extraconsole-extraconsole_test';
+    loginUrl.textContent = acsUrl.textContent;
+    accessUrl.textContent = 'https://web.dev-directcloud.jp/sso?code=extraconsole_test';
+    laSSO.checked = true;
+    onIdpChange('extraconsole');
+  } else if (type === 'saved') {
+    samlCheck.checked = true;
+    idpRadios.forEach(function(r){r.checked = r.value==='extraconsole'});
+    xmlName.textContent = 'agmetadata.xml';
+    entityId.textContent = 'dc-extraconsole-aoyamagakuin';
+    acsUrl.textContent = 'https://api.directcloud.jp/simplesaml/module.php/saml/sp/saml2-acs.php/dc-extraconsole-aoyamagakuin';
+    loginUrl.textContent = acsUrl.textContent;
+    accessUrl.textContent = 'https://web.directcloud.jp/sso?code=aoyamagakuin';
+    laSSO.checked = true;
+    onIdpChange('extraconsole');
+  } else if (type === 'siteminder') {
+    samlCheck.checked = true;
+    /* SiteMinder not in radio list - show as selected via custom logic */
+    idpRadios.forEach(function(r){r.checked = false});
+    xmlName.textContent = 'siteminder_metadata.xml';
+    entityId.textContent = 'dc-siteminder-aoyamagakuin';
+    acsUrl.textContent = 'https://api.directcloud.jp/simplesaml/module.php/saml/sp/saml2-acs.php/dc-siteminder-aoyamagakuin';
+    loginUrl.textContent = acsUrl.textContent;
+    accessUrl.textContent = 'https://web.directcloud.jp/sso?code=aoyamagakuin';
+    laSSO.checked = true;
+    onIdpChange('siteminder');
+  }
+}
+
+/* ===== PC Web Scenarios ===== */
+function pcwebScenario(type) {
+  document.querySelectorAll('#screen-pcweb-normal .scenario-chip').forEach(function(c){c.classList.remove('active')});
+  event.target.classList.add('active');
+  document.getElementById('loginNormal').style.display = type==='login' ? 'block' : 'none';
+  document.getElementById('ssoDialog').style.display = type==='sso-dialog' ? 'flex' : 'none';
+  document.getElementById('ssoRedirect').style.display = type==='sso-redirect' ? 'block' : 'none';
+}
+function showSsoDialog() {
+  document.getElementById('ssoDialog').style.display = 'flex';
+  document.querySelectorAll('#screen-pcweb-normal .scenario-chip').forEach(function(c){c.classList.remove('active')});
+  document.querySelectorAll('#screen-pcweb-normal .scenario-chip')[1].classList.add('active');
+}
+function hideSsoDialog() {
+  document.getElementById('ssoDialog').style.display = 'none';
+  document.querySelectorAll('#screen-pcweb-normal .scenario-chip').forEach(function(c){c.classList.remove('active')});
+  document.querySelectorAll('#screen-pcweb-normal .scenario-chip')[0].classList.add('active');
+}
+function checkSsoCode() {
+  var code = document.getElementById('ssoCompanyCode').value;
+  var btn = document.getElementById('ssoConfirmBtn');
+  btn.disabled = !code;
+  btn.style.opacity = code ? '1' : '0.5';
+}
+function redirectToIdp() {
+  document.getElementById('ssoDialog').style.display = 'none';
+  document.getElementById('loginNormal').style.display = 'none';
+  document.getElementById('ssoRedirect').style.display = 'block';
+  document.querySelectorAll('#screen-pcweb-normal .scenario-chip').forEach(function(c){c.classList.remove('active')});
+  document.querySelectorAll('#screen-pcweb-normal .scenario-chip')[2].classList.add('active');
+}
+
+/* ===== Error States ===== */
+function showError(type) {
+  document.querySelectorAll('#screen-pcweb-error .scenario-chip').forEach(function(c){c.classList.remove('active')});
+  event.target.classList.add('active');
+  ['not-found','saml-invalid','saml-expired','idp-unreachable'].forEach(function(id){
+    document.getElementById('error-'+id).style.display = id===type ? 'block' : 'none';
+  });
+}
+
+/* ===== Toast ===== */
+function showToast(msg, type) {
+  var toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast ' + type + ' show';
+  setTimeout(function(){toast.classList.remove('show')}, 3000);
+}
+
+/* ===== Sidebar toggle ===== */
+document.querySelectorAll('.mgr-menu-parent__label').forEach(function(label){
+  label.addEventListener('click', function(){
+    this.parentElement.classList.toggle('open');
+  });
+});
+
+/* ===== i18n System ===== */
+(function() {
+  var I18N = {
+    'co.100001': {ko:'파일 선택',en:'Choose File',ja:'ファイル選択'},
+    'co.100002': {ko:'취소',en:'Cancel',ja:'キャンセル'},
+    'co.100008': {ko:'로그인',en:'Login',ja:'ログイン'},
+    'co.100010': {ko:'복사',en:'Copy',ja:'コピー'},
+    'co.100026': {ko:'저장',en:'Save',ja:'保存'},
+    'ma.100001': {ko:'전체 기능 목록',en:'All Features',ja:'全機能一覧'},
+    'ma.100002': {ko:'보안 정책',en:'Security',ja:'セキュリティ'},
+    'ma.100003': {ko:'사용자',en:'Users',ja:'ユーザー'},
+    'ma.100004': {ko:'사용자 관리',en:'User Management',ja:'ユーザー管理'},
+    'ma.100005': {ko:'게스트 관리',en:'Guest Management',ja:'ゲスト管理'},
+    'ma.100006': {ko:'SSO 관리',en:'SSO Settings',ja:'SSO連携'},
+    'ma.100007': {ko:'관리자',en:'Administrators',ja:'管理者'},
+    'ma.100008': {ko:'SSO 관리',en:'SSO Settings',ja:'SSO連携'},
+    'ma.100009': {ko:'SAML',en:'SAML',ja:'SAML'},
+    'ma.100010': {ko:'SAML 2.0 연계',en:'SAML 2.0 Integration',ja:'SAML 2.0 連携'},
+    'ma.100011': {ko:'사용함',en:'Enable',ja:'使用する'},
+    'ma.100012': {ko:'SAML 서명증명서',en:'SAML Certificate',ja:'SAML 証明書'},
+    'ma.100013': {ko:'로그인 계정',en:'Login Account',ja:'ログインアカウント'},
+    'ma.100014': {ko:'IdP 계정만 사용',en:'Use IdP account only',ja:'IdPのアカウントのみ使用'},
+    'ma.100015': {ko:'IdP와 DirectCloud 모두 사용',en:'Use both IdP and DirectCloud accounts',ja:'IdPとDirectCloudの両方のアカウントを使用'},
+    'ma.100016': {ko:'로그아웃 시 처리',en:'Logout Handling',ja:'ログアウト時の処理'},
+    'ma.100017': {ko:'DirectCloud만 로그아웃',en:'Logout from DirectCloud only',ja:'DirectCloudのみログアウト'},
+    'ma.100018': {ko:'DirectCloud와 IdP 모두 로그아웃',en:'Logout from both DirectCloud and IdP',ja:'DirectCloudとIdPの両方からログアウト'},
+    'ma.100019': {ko:'SP 정보 (IdP 등록용)',en:'SP Information (for IdP registration)',ja:'SP情報（IdPへの登録用）'},
+    'ma.100020': {ko:'설정 저장 후 renew_saml.php 배치 실행으로 반영됩니다 (최대 5분).',en:'After saving, changes take effect when renew_saml.php batch runs (up to 5 min).',ja:'設定保存後、renew_saml.phpバッチの実行により反映されます（最大5分）。'},
+    'lo.100001': {ko:'회사코드(그룹아이디)',en:'Company Code (Group ID)',ja:'会社コード（グループID）'},
+    'lo.100002': {ko:'아이디',en:'User ID',ja:'ユーザーID'},
+    'lo.100003': {ko:'비밀번호',en:'Password',ja:'パスワード'},
+    'lo.100004': {ko:'로그인 상태 유지',en:'Keep me logged in',ja:'ログイン状態を維持'},
+    'lo.100005': {ko:'비밀번호를 분실한 경우',en:'Forgot password?',ja:'パスワードをお忘れの方'},
+    'lo.100006': {ko:'SSO 로그인',en:'SSO Login',ja:'SSOでログイン'},
+    'lo.100007': {ko:'SSO 사용여부 확인',en:'SSO Availability Check',ja:'SSO使用可否確認'},
+    'lo.100008': {ko:'귀사에서 SSO를 설정한 경우 SSO 로그인 화면으로 이동합니다.',en:'If your company has SSO configured, you will be redirected to the SSO login page.',ja:'お客様の会社でSSOを設定済みの場合、SSOログイン画面に移動します。'},
+    'lo.100009': {ko:'확인',en:'Confirm',ja:'確認'},
+    'lo.100010': {ko:'ExtraConsole 인증 화면으로 이동 중...',en:'Redirecting to ExtraConsole authentication...',ja:'ExtraConsole認証画面へ移動しています...'},
+    'lo.100011': {ko:'잠시 기다려 주세요.',en:'Please wait.',ja:'しばらくお待ちください。'},
+    'lo.100012': {ko:'DirectCloud 로그인',en:'DirectCloud Login',ja:'DirectCloud ログイン'},
+    'lo.100013': {ko:'SSO로 로그인',en:'Login with SSO',ja:'SSOでログイン'},
+    'lo.100014': {ko:'사용자를 찾을 수 없습니다',en:'User not found',ja:'ユーザーが見つかりません'},
+    'lo.100015': {ko:'사용자를 찾을 수 없습니다. 관리자에게 문의해 주세요.',en:'User not found. Please contact your administrator.',ja:'ユーザーが見つかりません。管理者にお問い合わせください。'},
+    'lo.100016': {ko:'로그인 화면으로 돌아가기',en:'Back to login',ja:'ログイン画面に戻る'},
+    'lo.100017': {ko:'인증에 실패했습니다',en:'Authentication failed',ja:'認証に失敗しました'},
+    'lo.100018': {ko:'인증에 실패했습니다. 다시 시도해 주세요.',en:'Authentication failed. Please try again.',ja:'認証に失敗しました。再度お試しください。'},
+    'lo.100019': {ko:'유효 기간 만료',en:'Session expired',ja:'有効期限切れ'},
+    'lo.100020': {ko:'인증 유효기간이 만료되었습니다. 다시 로그인해 주세요.',en:'Authentication has expired. Please log in again.',ja:'認証の有効期限が切れました。再度ログインしてください。'},
+    'lo.100021': {ko:'다시 로그인',en:'Login again',ja:'再度ログイン'},
+    'lo.100022': {ko:'인증 서버에 연결할 수 없습니다',en:'Cannot connect to authentication server',ja:'認証サーバーに接続できません'},
+    'lo.100023': {ko:'인증 서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.',en:'Cannot connect to authentication server. Please try again later.',ja:'認証サーバーに接続できません。しばらく後に再度お試しください。'}
+  };
+
+  var toggleBtn = document.getElementById('i18n-toggle');
+  var panel = document.getElementById('i18n-panel');
+  var isActive = false;
+
+  toggleBtn.addEventListener('click', function() {
+    isActive = !isActive;
+    document.body.classList.toggle('i18n-active', isActive);
+    toggleBtn.classList.toggle('active', isActive);
+    panel.style.display = isActive ? 'block' : 'none';
+    if (isActive) showI18nEmpty();
+  });
+
+  document.addEventListener('mouseover', function(e) {
+    if (!isActive) return;
+    var target = e.target.closest('[data-i18n]');
+    if (!target) return;
+    var code = target.getAttribute('data-i18n');
+    var status = target.getAttribute('data-i18n-status');
+    var data = I18N[code];
+    document.getElementById('i18nCode').textContent = code;
+    var badge = document.getElementById('i18nBadge');
+    badge.textContent = status === 'existing' ? 'EXISTING' : 'NEW';
+    badge.className = 'i18n-panel__badge ' + status;
+    var transEl = document.getElementById('i18nTrans');
+    if (data) {
+      transEl.innerHTML = '<div><span class="lang-label">KO</span> '+data.ko+'</div><div><span class="lang-label">EN</span> '+data.en+'</div><div><span class="lang-label">JA</span> '+data.ja+'</div>';
+    } else {
+      transEl.innerHTML = '<div style="color:#8a6d3b;">新規登録必要</div>';
+    }
+  });
+
+  function showI18nEmpty() {
+    document.getElementById('i18nCode').textContent = '-';
+    document.getElementById('i18nBadge').textContent = '';
+    document.getElementById('i18nBadge').className = 'i18n-panel__badge';
+    document.getElementById('i18nTrans').innerHTML = '<div class="i18n-panel__empty">多言語要素にマウスを乗せてください</div>';
+  }
+})();
+
+/* Init: trigger ExtraConsole scenario */
+onIdpChange('extraconsole');
+</script>
+</body>
+</html>
