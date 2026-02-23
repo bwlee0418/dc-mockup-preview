@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DirectCloud Manager - 使用状況 Mockup</title>
+<style>
+  /* ============================================================
+     DS Builder Design Tokens (CSS Custom Properties)
+     ============================================================ */
+  :root {
+    /* Navy (Neutral) */
+    --navy-950: #050A14;
+    --navy-900: #091124;
+    --navy-800: #15213D;
+    --navy-700: #263557;
+    --navy-600: #384970;
+    --navy-500: #606E8F;
+    --navy-400: #8B97B2;
+    --navy-300: #C5CCDB;
+    --navy-200: #E4E7F0;
+    --navy-100: #F2F4FA;
+    --navy-050: #F7F9FC;
+
+    /* Trust Blue (Brand Primary) */
+    --tblue-800: #004EFE;
+    --tblue-600: #2E6EFE;
+    --tblue-500: #4D83FF;
+    --tblue-400: #6694FE;
+    --tblue-100: #D0DEFE;
+    --tblue-050: #EAF0FE;
+
+    /* Semantic Colors */
+    --green-600: #0CCC5F;
+    --green-500: #39DB7F;
+    --yellow-500: #EAA800;
+    --yellow-400: #FFB700;
+    --orange-600: #FF660D;
+    --orange-500: #FF7B2F;
+    --orange-100: #FFDBC7;
+    --orange-050: #FFECE0;
+    --red-600: #FF3E3E;
+    --red-500: #FF5757;
+    --red-700: #E52020;
+
+    /* Layout */
+    --sp-050: 2px;
+    --sp-100: 4px;
+    --sp-200: 8px;
+    --sp-250: 12px;
+    --sp-300: 16px;
+    --sp-350: 20px;
+    --sp-400: 24px;
+    --sp-500: 32px;
+    --rd-small: 4px;
+    --rd-medium: 8px;
+    --rd-large: 12px;
+    --rd-full: 999px;
+
+    /* Typography */
+    --font-primary: 'Pretendard JP Variable', 'Pretendard Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-secondary: 'Geist Mono', monospace;
+  }
+
+  /* ============================================================
+     Reset & Base
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-primary);
+    background: var(--navy-050);
+    color: var(--navy-800);
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ============================================================
+     Sidebar (SmartAdmin-style Manager SNB)
+     ============================================================ */
+  .sidebar {
+    width: 240px;
+    min-height: 100vh;
+    background: var(--navy-900);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.2s ease;
+    position: relative;
+    z-index: 10;
+  }
+
+  .sidebar.minified { width: 56px; }
+
+  .sidebar-brand {
+    padding: var(--sp-300);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-200);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .sidebar-brand .cloud-icon {
+    width: 28px; height: 28px;
+    background: var(--tblue-600);
+    border-radius: var(--rd-small);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: #fff; flex-shrink: 0;
+  }
+
+  .sidebar-brand .brand-text { overflow: hidden; white-space: nowrap; }
+  .sidebar-brand .brand-title { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+  .sidebar-brand .brand-sub { font-size: 10px; color: var(--navy-400); font-weight: 500; }
+  .minified .brand-text { display: none; }
+
+  /* Nav Menu */
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: var(--sp-200) 0; }
+  .sidebar-nav::-webkit-scrollbar { width: 3px; }
+  .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-nav::-webkit-scrollbar-thumb { background: var(--navy-700); border-radius: var(--rd-full); }
+
+  .nav-item {
+    display: flex; align-items: center; gap: var(--sp-250);
+    padding: 9px var(--sp-300); color: var(--navy-400);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s; text-decoration: none; position: relative;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--navy-300); }
+  .nav-item.active { background: rgba(46,110,254,0.12); color: var(--tblue-400); }
+  .nav-item.active::before {
+    content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
+    width: 3px; background: var(--tblue-600); border-radius: 0 2px 2px 0;
+  }
+  .nav-item .nav-icon {
+    width: 20px; height: 20px; display: flex; align-items: center;
+    justify-content: center; font-size: 14px; flex-shrink: 0; opacity: 0.7;
+  }
+  .nav-item:hover .nav-icon, .nav-item.active .nav-icon { opacity: 1; }
+  .nav-item .nav-label { white-space: nowrap; overflow: hidden; }
+  .minified .nav-label { display: none; }
+  .minified .nav-item { justify-content: center; padding: 9px 0; }
+
+  .nav-divider { height: 1px; background: rgba(255,255,255,0.06); margin: var(--sp-200) var(--sp-300); }
+
+  /* ============================================================
+     Company Status - Core Feature
+     ============================================================ */
+  .company-status { border-top: 1px solid rgba(255,255,255,0.08); margin-top: auto; }
+  .minified .company-status { display: none; }
+
+  .cs-header {
+    padding: 10px var(--sp-300); display: flex; align-items: center;
+    justify-content: space-between; cursor: pointer; user-select: none; transition: background 0.15s;
+  }
+  .cs-header:hover { background: rgba(255,255,255,0.04); }
+  .cs-header-left { display: flex; align-items: center; gap: var(--sp-200); }
+  .cs-header-icon { font-size: 12px; color: var(--navy-500); }
+  .cs-header-title { font-size: 12px; font-weight: 600; color: var(--navy-400); letter-spacing: 0.02em; }
+  .cs-header-chevron { font-size: 10px; color: var(--navy-500); transition: transform 0.25s ease; }
+  .cs-header-chevron.open { transform: rotate(180deg); }
+
+  .cs-body {
+    max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0 var(--sp-300);
+  }
+  .cs-body.open { max-height: 400px; padding: 0 var(--sp-300) var(--sp-300); }
+  .cs-body.loading { opacity: 0.5; pointer-events: none; }
+
+  .cs-item { margin-bottom: var(--sp-250); }
+  .cs-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--navy-500); margin-bottom: var(--sp-050); font-weight: 500;
+  }
+  .cs-label-icon { font-size: 11px; width: 14px; text-align: center; opacity: 0.7; }
+  .cs-value {
+    font-size: 13px; color: #fff; font-weight: 500; padding-left: 20px;
+    font-family: var(--font-secondary); letter-spacing: -0.02em;
+  }
+  .cs-value .cs-unit { font-size: 11px; color: var(--navy-400); font-weight: 400; font-family: var(--font-primary); }
+  .cs-value .cs-divider { color: var(--navy-600); margin: 0 2px; font-weight: 400; }
+  .cs-value .cs-total { color: var(--navy-400); font-weight: 400; }
+
+  .cs-progress-wrap { padding-left: 20px; margin-top: 6px; }
+  .cs-progress { height: 6px; background: rgba(255,255,255,0.08); border-radius: var(--rd-full); overflow: hidden; }
+  .cs-progress-bar {
+    height: 100%; border-radius: var(--rd-full);
+    transition: width 0.6s ease, background 0.3s;
+  }
+  .cs-progress-bar.level-normal { background: var(--green-600); }
+  .cs-progress-bar.level-caution { background: var(--yellow-500); }
+  .cs-progress-bar.level-warning { background: var(--orange-600); }
+  .cs-progress-bar.level-danger { background: var(--red-600); }
+
+  .cs-progress-text { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; padding-left: 20px; }
+  .cs-percent { font-size: 10px; font-weight: 700; font-family: var(--font-secondary); }
+  .cs-percent.level-normal { color: var(--green-500); }
+  .cs-percent.level-caution { color: var(--yellow-400); }
+  .cs-percent.level-warning { color: var(--orange-500); }
+  .cs-percent.level-danger { color: var(--red-500); }
+
+  .cs-over-badge {
+    font-size: 9px; font-weight: 700; color: var(--red-500);
+    background: rgba(255,62,62,0.12); padding: 1px 6px;
+    border-radius: var(--rd-full); animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+  .cs-updated { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--navy-600); margin-bottom: var(--sp-250); }
+  .cs-action-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; padding: 7px; font-size: 11px; font-weight: 500;
+    color: var(--navy-400); background: transparent;
+    border: 1px solid rgba(255,255,255,0.1); border-radius: var(--rd-small);
+    cursor: pointer; transition: all 0.15s; text-decoration: none;
+  }
+  .cs-action-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); color: #fff; }
+  .cs-action-btn .arrow { font-size: 10px; transition: transform 0.15s; }
+  .cs-action-btn:hover .arrow { transform: translateX(2px); }
+
+  .cs-item.hidden { display: none; }
+
+  /* ============================================================
+     Main Content Area
+     ============================================================ */
+  .main-content { flex: 1; display: flex; flex-direction: column; }
+
+  .topbar {
+    height: 48px; background: #fff; border-bottom: 1px solid var(--navy-200);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 var(--sp-400);
+  }
+  .topbar-left { display: flex; align-items: center; gap: var(--sp-300); }
+  .topbar-toggle {
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border-radius: var(--rd-small); border: none;
+    background: transparent; color: var(--navy-500); font-size: 16px; transition: all 0.15s;
+  }
+  .topbar-toggle:hover { background: var(--navy-100); color: var(--navy-800); }
+  .topbar-breadcrumb { font-size: 13px; color: var(--navy-500); display: flex; align-items: center; gap: 6px; }
+  .topbar-breadcrumb span { color: var(--navy-800); font-weight: 600; }
+
+  .content-area { flex: 1; padding: var(--sp-400); }
+
+  /* ============================================================
+     Demo Controls Panel
+     ============================================================ */
+  .demo-panel {
+    background: #fff; border-radius: var(--rd-medium);
+    border: 1px solid var(--navy-200); padding: var(--sp-400); max-width: 560px;
+  }
+  .demo-panel h2 { font-size: 16px; font-weight: 700; color: var(--navy-800); margin-bottom: 4px; letter-spacing: -0.02em; }
+  .demo-panel p { font-size: 12px; color: var(--navy-500); margin-bottom: var(--sp-350); }
+  .demo-section { margin-bottom: var(--sp-350); }
+  .demo-section:last-child { margin-bottom: 0; }
+  .demo-section-title { font-size: 11px; font-weight: 700; color: var(--navy-400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sp-200); }
+  .demo-row { display: flex; align-items: center; gap: var(--sp-250); margin-bottom: var(--sp-200); }
+  .demo-label { font-size: 12px; color: var(--navy-600); min-width: 110px; font-weight: 500; }
+  .demo-slider-group { display: flex; align-items: center; gap: var(--sp-200); flex: 1; }
+  .demo-slider { flex: 1; height: 4px; -webkit-appearance: none; appearance: none; background: var(--navy-200); border-radius: var(--rd-full); outline: none; cursor: pointer; }
+  .demo-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--tblue-600); cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .demo-slider-value { font-size: 12px; font-weight: 700; color: var(--navy-800); min-width: 40px; text-align: right; font-family: var(--font-secondary); }
+  .demo-btn-group { display: flex; gap: var(--sp-200); flex-wrap: wrap; }
+  .demo-btn {
+    padding: 5px 12px; font-size: 11px; font-weight: 500;
+    border-radius: var(--rd-small); border: 1px solid var(--navy-200);
+    background: #fff; color: var(--navy-600); cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .demo-btn:hover { border-color: var(--tblue-600); color: var(--tblue-600); background: var(--tblue-050); }
+  .demo-btn.active { border-color: var(--tblue-600); background: var(--tblue-600); color: #fff; }
+  .demo-toggle {
+    position: relative; width: 36px; height: 20px; background: var(--navy-300);
+    border-radius: var(--rd-full); cursor: pointer; transition: background 0.2s; border: none; padding: 0;
+  }
+  .demo-toggle.on { background: var(--tblue-600); }
+  .demo-toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+    background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .demo-toggle.on::after { transform: translateX(16px); }
+  .demo-color-dots { display: flex; gap: var(--sp-200); align-items: center; }
+  .demo-color-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .demo-color-dot.normal { background: var(--green-600); }
+  .demo-color-dot.caution { background: var(--yellow-500); }
+  .demo-color-dot.warning { background: var(--orange-600); }
+  .demo-color-dot.danger { background: var(--red-600); }
+  .demo-color-text { font-size: 10px; color: var(--navy-500); font-weight: 500; }
+  .demo-info {
+    font-size: 11px; color: var(--navy-400); background: var(--navy-050);
+    padding: var(--sp-200) var(--sp-250); border-radius: var(--rd-small);
+    line-height: 1.5; border-left: 3px solid var(--tblue-600);
+  }
+
+  /* ============================================================
+     Over-Capacity Warning Modal
+     ============================================================ */
+  .oc-overlay {
+    position: fixed; inset: 0; background: rgba(5,10,20,0.55); z-index: 20000;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.25s ease; pointer-events: none;
+  }
+  .oc-overlay.visible { opacity: 1; pointer-events: auto; }
+  .oc-modal {
+    width: 420px; background: #fff; border-radius: var(--rd-medium);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+    transform: translateY(12px) scale(0.97); transition: transform 0.3s ease; overflow: hidden;
+  }
+  .oc-overlay.visible .oc-modal { transform: translateY(0) scale(1); }
+  .oc-modal-header {
+    display: flex; align-items: center; gap: var(--sp-250);
+    padding: var(--sp-350) var(--sp-400); border-bottom: 1px solid var(--navy-200);
+  }
+  .oc-modal-icon {
+    width: 40px; height: 40px; border-radius: var(--rd-medium);
+    background: rgba(255,62,62,0.08); display: flex; align-items: center;
+    justify-content: center; font-size: 20px; flex-shrink: 0;
+  }
+  .oc-modal-title { font-size: 15px; font-weight: 700; color: var(--navy-800); letter-spacing: -0.02em; }
+  .oc-modal-subtitle { font-size: 11px; color: var(--navy-500); margin-top: 2px; }
+  .oc-modal-body { padding: var(--sp-350) var(--sp-400); }
+  .oc-modal-message { font-size: 13px; color: var(--navy-700); line-height: 1.65; margin-bottom: var(--sp-300); }
+  .oc-modal-usage {
+    display: flex; align-items: center; gap: var(--sp-250);
+    padding: var(--sp-250) var(--sp-300); background: rgba(255,62,62,0.04);
+    border: 1px solid rgba(255,62,62,0.12); border-radius: var(--rd-small);
+  }
+  .oc-modal-usage-icon { font-size: 18px; }
+  .oc-modal-usage-text { font-size: 13px; font-weight: 600; color: var(--red-700); font-family: var(--font-secondary); }
+  .oc-modal-usage-label { font-size: 11px; color: var(--navy-500); font-weight: 400; font-family: var(--font-primary); }
+  .oc-modal-footer { padding: var(--sp-250) var(--sp-400) var(--sp-350); display: flex; justify-content: flex-end; }
+  .oc-modal-btn {
+    padding: 8px 32px; font-size: 13px; font-weight: 600;
+    background: var(--tblue-600); color: #fff; border: none;
+    border-radius: var(--rd-small); cursor: pointer; transition: background 0.15s; font-family: inherit;
+  }
+  .oc-modal-btn:hover { background: #2560E0; }
+
+  /* ============================================================
+     i18n Overlay Indicators (active mode)
+     ============================================================ */
+  body.i18n-active [data-i18n] { position: relative; outline: 1px dashed var(--tblue-400); outline-offset: 2px; }
+  body.i18n-active [data-i18n-status="existing"]::after {
+    content: attr(data-i18n); position: absolute; top: -6px; right: -2px;
+    font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 3px;
+    pointer-events: none; z-index: 10000; line-height: 1.2; white-space: nowrap;
+    background: var(--tblue-100); color: var(--tblue-800);
+  }
+  body.i18n-active [data-i18n-status="new"]::after {
+    content: "NEW #" attr(data-i18n-seq); position: absolute; top: -6px; right: -2px;
+    font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 3px;
+    pointer-events: none; z-index: 10000; line-height: 1.2; white-space: nowrap;
+    background: var(--orange-050); color: var(--orange-600);
+  }
+
+  /* ============================================================
+     Language Toggle
+     ============================================================ */
+  .lang-toggle { display: flex; gap: 2px; background: var(--navy-100); padding: 2px; border-radius: 6px; }
+  .lang-btn {
+    padding: 4px 12px; font-size: 11px; font-weight: 500; border: none;
+    background: transparent; color: var(--navy-500); cursor: pointer;
+    border-radius: 4px; transition: all 0.15s; font-family: inherit;
+  }
+  .lang-btn:hover { color: var(--navy-800); }
+  .lang-btn.active { background: #fff; color: var(--navy-800); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+  /* ============================================================
+     i18n Resource Manager Panel
+     ============================================================ */
+  .i18n-fab {
+    position: fixed; bottom: 20px; right: 20px; width: 48px; height: 48px;
+    border-radius: 50%; border: 2px solid var(--navy-200); background: #fff;
+    color: var(--navy-500); font-size: 11px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12); z-index: 10001; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .i18n-fab:hover { border-color: var(--tblue-500); color: var(--tblue-500); }
+  .i18n-fab.active { background: var(--tblue-500); color: #fff; border-color: var(--tblue-500); }
+
+  .i18n-panel {
+    position: fixed; bottom: 80px; right: 20px; width: 380px; max-height: 480px;
+    background: #fff; border: 1px solid var(--navy-200); border-radius: var(--rd-large);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 10001; overflow: hidden;
+    font-family: var(--font-primary); display: flex; flex-direction: column;
+  }
+  .i18n-panel__header {
+    padding: 12px 16px; border-bottom: 1px solid var(--navy-100);
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .i18n-panel__title { font-size: 13px; font-weight: 700; color: var(--navy-700); }
+  .i18n-panel__controls { display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--navy-500); }
+  .i18n-panel__controls label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .i18n-panel__controls select {
+    font-size: 11px; border: 1px solid var(--navy-200); border-radius: 4px;
+    padding: 2px 6px; color: var(--navy-600); background: #fff; font-family: inherit;
+  }
+  .i18n-panel__list { flex: 1; overflow-y: auto; max-height: 280px; }
+  .i18n-panel__item {
+    display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+    border-bottom: 1px solid var(--navy-050); font-size: 12px; cursor: pointer; transition: background 0.1s;
+  }
+  .i18n-panel__item:hover { background: var(--navy-050); }
+  .i18n-panel__item.highlight { background: var(--tblue-050); }
+  .i18n-panel__item input[type="checkbox"] { flex-shrink: 0; cursor: pointer; }
+  .i18n-panel__item-code {
+    font-family: var(--font-secondary); font-size: 10px; font-weight: 600;
+    min-width: 70px; color: var(--navy-600);
+  }
+  .i18n-panel__item-text { flex: 1; color: var(--navy-700); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .i18n-panel__item-badge {
+    font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 10px; flex-shrink: 0;
+  }
+  .i18n-panel__item-badge.existing { background: var(--tblue-100); color: var(--tblue-800); }
+  .i18n-panel__item-badge.new { background: var(--orange-050); color: var(--orange-600); }
+
+  .i18n-panel__footer {
+    padding: 10px 16px; border-top: 1px solid var(--navy-100);
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .i18n-panel__lang-select { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--navy-500); }
+  .i18n-panel__lang-select label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
+  .i18n-panel__actions { display: flex; align-items: center; gap: 10px; }
+  #i18n-selected-count { font-size: 11px; color: var(--navy-400); }
+  .i18n-panel__download-btn {
+    padding: 5px 14px; font-size: 11px; font-weight: 600;
+    background: var(--tblue-600); color: #fff; border: none;
+    border-radius: var(--rd-small); cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .i18n-panel__download-btn:hover { background: var(--tblue-800); }
+  .i18n-panel__download-btn:disabled { background: var(--navy-200); color: var(--navy-400); cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SIDEBAR
+     ============================================================ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="cloud-icon">DC</div>
+    <div class="brand-text">
+      <div class="brand-title">DirectCloud</div>
+      <div class="brand-sub">Manager</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="#"><span class="nav-icon">&#9432;</span><span class="nav-label">システム情報</span></a>
+    <a class="nav-item" href="#"><span class="nav-icon">&#128274;</span><span class="nav-label">セキュリティ</span></a>
+    <a class="nav-item active" href="#"><span class="nav-icon">&#128101;</span><span class="nav-label">アカウント</span></a>
+    <a class="nav-item" href="#"><span class="nav-icon">&#128193;</span><span class="nav-label">共有</span></a>
+    <a class="nav-item" href="#"><span class="nav-icon">&#9881;</span><span class="nav-label">ワークフロー</span></a>
+    <a class="nav-item" href="#"><span class="nav-icon">&#128190;</span><span class="nav-label">容量</span></a>
+    <a class="nav-item" href="#"><span class="nav-icon">&#128737;</span><span class="nav-label">ランサムウェア</span></a>
+    <a class="nav-item" href="#"><span class="nav-icon">&#128200;</span><span class="nav-label">ログ・統計</span></a>
+    <div class="nav-divider"></div>
+    <a class="nav-item" href="#"><span class="nav-icon">&#128196;</span><span class="nav-label">監査ログ</span></a>
+    <a class="nav-item" href="#"><span class="nav-icon">&#128295;</span><span class="nav-label">管理設定</span></a>
+  </nav>
+
+  <!-- ============================================================
+       COMPANY STATUS - Main Feature
+       ============================================================ -->
+  <div class="company-status" id="companyStatus">
+    <div class="cs-header" id="csToggle">
+      <div class="cs-header-left">
+        <span class="cs-header-icon">&#127970;</span>
+        <span class="cs-header-title" data-i18n="" data-i18n-status="new" data-i18n-seq="1">使用状況</span>
+      </div>
+      <span class="cs-header-chevron" id="csChevron">&#9660;</span>
+    </div>
+    <div class="cs-body" id="csBody">
+      <!-- User Count -->
+      <div class="cs-item">
+        <div class="cs-label">
+          <span class="cs-label-icon">&#128100;</span>
+          <span data-i18n="" data-i18n-status="new" data-i18n-seq="2">ユーザー数</span>
+        </div>
+        <div class="cs-value">
+          <span id="userCount">45</span><span class="cs-unit" data-i18n="" data-i18n-status="new" data-i18n-seq="3">名</span>
+          <span class="cs-divider" id="userDivider">/</span>
+          <span class="cs-total" id="userTotal">100</span><span class="cs-unit cs-total" id="userTotalUnit" data-i18n="" data-i18n-status="new" data-i18n-seq="3">名</span>
+        </div>
+      </div>
+
+      <!-- Shared Box Folders -->
+      <div class="cs-item" id="sharedBoxRow">
+        <div class="cs-label">
+          <span class="cs-label-icon">&#128194;</span>
+          <span data-i18n="" data-i18n-status="new" data-i18n-seq="4">Shared Box フォルダ</span>
+        </div>
+        <div class="cs-value">
+          <span id="folderCount">128</span><span class="cs-unit" data-i18n="" data-i18n-status="new" data-i18n-seq="5">個</span>
+        </div>
+      </div>
+
+      <!-- Storage Usage -->
+      <div class="cs-item">
+        <div class="cs-label">
+          <span class="cs-label-icon">&#128187;</span>
+          <span data-i18n="" data-i18n-status="new" data-i18n-seq="6">使用容量</span>
+        </div>
+        <div class="cs-value">
+          <span id="usedSize">1.2</span><span class="cs-unit" id="usedUnit">TB</span>
+          <span class="cs-divider" id="sizeDivider">/</span>
+          <span class="cs-total" id="totalSize">5</span><span class="cs-unit cs-total" id="totalUnit">TB</span>
+        </div>
+        <div class="cs-progress-wrap" id="progressWrap">
+          <div class="cs-progress">
+            <div class="cs-progress-bar level-normal" id="progressBar" style="width: 24%"></div>
+          </div>
+        </div>
+        <div class="cs-progress-text" id="progressText">
+          <span class="cs-percent level-normal" id="percentText">24%</span>
+          <span class="cs-over-badge" id="overBadge" style="display:none" data-i18n="" data-i18n-status="new" data-i18n-seq="7">容量超過</span>
+        </div>
+      </div>
+
+      <!-- Updated Time -->
+      <div class="cs-updated">
+        &#128340;&nbsp; <span id="updatedTime">2026.02.06 09:00</span> <span data-i18n="" data-i18n-status="new" data-i18n-seq="8">基準</span>
+      </div>
+
+      <!-- Action Button -->
+      <a href="#" class="cs-action-btn" onclick="return false">
+        <span data-i18n="" data-i18n-status="new" data-i18n-seq="9">ユーザー管理</span> <span class="arrow">&#8594;</span>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="topbar-toggle" id="sidebarToggle" title="サイドバー切替">&#9776;</button>
+      <div class="topbar-breadcrumb">
+        <span>アカウント</span> &rsaquo; <span>ユーザー管理</span>
+      </div>
+    </div>
+    <div class="lang-toggle" id="langToggle">
+      <button class="lang-btn" data-lang="ko">KO</button>
+      <button class="lang-btn active" data-lang="ja">JA</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <div class="demo-panel">
+      <h2>使用状況 インタラクティブ目業</h2>
+      <p>左サイドバー下部の「使用状況」セクションをご確認ください。以下のコントロールで各状態を確認できます。</p>
+
+      <div class="demo-section">
+        <div class="demo-section-title">使用率シミュレーション</div>
+        <div class="demo-row">
+          <span class="demo-label">使用容量</span>
+          <div class="demo-slider-group">
+            <input type="range" class="demo-slider" id="usageSlider" min="0" max="120" value="24">
+            <span class="demo-slider-value" id="usageValue">24%</span>
+          </div>
+        </div>
+        <div class="demo-row" style="margin-top:4px">
+          <span class="demo-label"></span>
+          <div class="demo-color-dots">
+            <span class="demo-color-dot normal"></span><span class="demo-color-text">0-70%</span>
+            <span class="demo-color-dot caution"></span><span class="demo-color-text">71-89%</span>
+            <span class="demo-color-dot warning"></span><span class="demo-color-text">90-99%</span>
+            <span class="demo-color-dot danger"></span><span class="demo-color-text">100%+</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <div class="demo-section-title">プリセット</div>
+        <div class="demo-btn-group">
+          <button class="demo-btn" onclick="setPreset(24)">正常 (24%)</button>
+          <button class="demo-btn" onclick="setPreset(78)">注意 (78%)</button>
+          <button class="demo-btn" onclick="setPreset(93)">警告 (93%)</button>
+          <button class="demo-btn" onclick="setPreset(105)">超過 (105%)</button>
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <div class="demo-section-title">特殊条件</div>
+        <div class="demo-row">
+          <span class="demo-label">無制限容量</span>
+          <button class="demo-toggle" id="toggleUnlimitedVolume" onclick="toggleUnlimited('volume')"></button>
+        </div>
+        <div class="demo-row">
+          <span class="demo-label">無制限ライセンス</span>
+          <button class="demo-toggle" id="toggleUnlimitedLicense" onclick="toggleUnlimited('license')"></button>
+        </div>
+        <div class="demo-row">
+          <span class="demo-label">Shared Box 未使用</span>
+          <button class="demo-toggle" id="toggleNoSharedBox" onclick="toggleSharedBox()"></button>
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <div class="demo-section-title">容量超過警告ポップアップ</div>
+        <div class="demo-btn-group">
+          <button class="demo-btn" onclick="demoShowWarning()">ログイン時の警告を表示</button>
+        </div>
+        <div class="demo-info" style="margin-top:8px">
+          使用率100%以上でManagerログイン時に自動表示されます。同一セッション内では1回のみ表示。
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <div class="demo-section-title">サイドバー</div>
+        <div class="demo-btn-group">
+          <button class="demo-btn" onclick="toggleSidebar()">縮小/展開 (Minify)</button>
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <div class="demo-info">
+          PRD準拠: デフォルトは展開状態。トグル状態はlocalStorageに保存され、ページ遷移時も維持されます。サイドバー縮小時は使用状況エリアが非表示になります。使用率100%超過時はログイン時に警告ポップアップが表示されます。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     OVER-CAPACITY WARNING MODAL
+     ============================================================ -->
+<div class="oc-overlay" id="ocOverlay">
+  <div class="oc-modal">
+    <div class="oc-modal-header">
+      <div class="oc-modal-icon">&#9888;&#65039;</div>
+      <div>
+        <div class="oc-modal-title" data-i18n="" data-i18n-status="new" data-i18n-seq="10">容量超過のお知らせ</div>
+        <div class="oc-modal-subtitle">Storage Over Capacity Notice</div>
+      </div>
+    </div>
+    <div class="oc-modal-body">
+      <div class="oc-modal-message" data-i18n="" data-i18n-status="new" data-i18n-seq="11">
+        現在の使用容量が契約容量を超過しています。<br>
+        安定したサービスのご利用のため、容量の追加契約をご検討ください。
+      </div>
+      <div class="oc-modal-usage">
+        <span class="oc-modal-usage-icon">&#128190;</span>
+        <div>
+          <div class="oc-modal-usage-text" id="ocUsageText">5.3TB / 5TB (105%)</div>
+          <div class="oc-modal-usage-label" data-i18n="" data-i18n-status="new" data-i18n-seq="6">使用容量</div>
+        </div>
+      </div>
+    </div>
+    <div class="oc-modal-footer">
+      <button class="oc-modal-btn" id="ocConfirmBtn" data-i18n="co.100001" data-i18n-status="existing">確認</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     i18n Resource Manager
+     ============================================================ -->
+<button id="i18n-toggle" class="i18n-fab" title="i18n Resource Manager">i18n</button>
+<div id="i18n-panel" class="i18n-panel" style="display:none;">
+  <div class="i18n-panel__header">
+    <span class="i18n-panel__title">i18n Resource Manager</span>
+    <div class="i18n-panel__controls">
+      <label><input type="checkbox" id="i18n-check-all"> 全体</label>
+      <select id="i18n-filter">
+        <option value="all">全体</option>
+        <option value="existing">既存</option>
+        <option value="new">新規</option>
+      </select>
+    </div>
+  </div>
+  <div class="i18n-panel__list" id="i18n-list"></div>
+  <div class="i18n-panel__footer">
+    <div class="i18n-panel__lang-select">
+      <span>言語:</span>
+      <label><input type="checkbox" name="i18n-lang" value="ko" checked> KO</label>
+      <label><input type="checkbox" name="i18n-lang" value="ja" checked> JA</label>
+      <label><input type="checkbox" name="i18n-lang" value="en"> EN</label>
+    </div>
+    <div class="i18n-panel__actions">
+      <span id="i18n-selected-count">0個 選択</span>
+      <button id="i18n-download" class="i18n-panel__download-btn" disabled>CSV Download</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // i18n Data (Existing POEditor resources + New mockup resources)
+  // ============================================================
+  var I18N_EXISTING = {
+    'co.100001': { ko: '확인', ja: 'OK', en: 'OK' }
+  };
+
+  var I18N_NEW = {
+    1:  { ko: '사용상황', ja: '使用状況', en: 'Usage Status' },
+    2:  { ko: '사용자 수', ja: 'ユーザー数', en: 'User Count' },
+    3:  { ko: '명', ja: '名', en: 'users' },
+    4:  { ko: 'Shared Box 폴더', ja: 'Shared Box フォルダ', en: 'Shared Box Folders' },
+    5:  { ko: '개', ja: '個', en: 'folders' },
+    6:  { ko: '사용 용량', ja: '使用容量', en: 'Storage Usage' },
+    7:  { ko: '용량 초과', ja: '容量超過', en: 'Over Capacity' },
+    8:  { ko: '기준', ja: '基準', en: 'As of' },
+    9:  { ko: '사용자 관리', ja: 'ユーザー管理', en: 'User Management' },
+    10: { ko: '용량 초과 안내', ja: '容量超過のお知らせ', en: 'Storage Over Capacity Notice' },
+    11: { ko: '현재 사용 용량이 계약 용량을 초과하였습니다.\n안정적인 서비스 이용을 위해 용량 추가 계약을 검토해 주세요.', ja: '現在の使用容量が契約容量を超過しています。\n安定したサービスのご利用のため、容量の追加契約をご検討ください。', en: 'Your current storage usage exceeds the contracted capacity.\nPlease consider purchasing additional storage for stable service usage.' }
+  };
+
+  // ============================================================
+  // App State
+  // ============================================================
+  var state = {
+    isOpen: localStorage.getItem('companyStatusOpen') !== '0',
+    unlimitedVolume: false,
+    unlimitedLicense: false,
+    noSharedBox: false,
+    percentage: 24
+  };
+
+  // ============================================================
+  // DOM helpers
+  // ============================================================
+  var $ = function(sel) { return document.querySelector(sel); };
+  var sidebar = $('#sidebar');
+  var csBody = $('#csBody');
+  var csChevron = $('#csChevron');
+  var progressBar = $('#progressBar');
+  var percentText = $('#percentText');
+  var overBadge = $('#overBadge');
+  var usageSlider = $('#usageSlider');
+  var usageValueEl = $('#usageValue');
+
+  // ============================================================
+  // Toggle Company Status
+  // ============================================================
+  $('#csToggle').addEventListener('click', function() {
+    state.isOpen = !state.isOpen;
+    updateToggleState();
+    localStorage.setItem('companyStatusOpen', state.isOpen ? '1' : '0');
+    if (state.isOpen) { simulateLoading(); }
+  });
+
+  function updateToggleState() {
+    csBody.classList.toggle('open', state.isOpen);
+    csChevron.classList.toggle('open', state.isOpen);
+  }
+
+  function simulateLoading() {
+    csBody.classList.add('loading');
+    setTimeout(function() { csBody.classList.remove('loading'); }, 400);
+  }
+
+  // ============================================================
+  // Usage percentage & color
+  // ============================================================
+  function getLevel(pct) {
+    if (pct >= 100) return 'danger';
+    if (pct >= 90) return 'warning';
+    if (pct > 70) return 'caution';
+    return 'normal';
+  }
+
+  function updateUsage(pct) {
+    state.percentage = pct;
+    var level = getLevel(pct);
+    var displayWidth = Math.min(pct, 100);
+    progressBar.style.width = displayWidth + '%';
+    progressBar.className = 'cs-progress-bar level-' + level;
+    percentText.textContent = pct + '%';
+    percentText.className = 'cs-percent level-' + level;
+    overBadge.style.display = pct >= 100 ? 'inline' : 'none';
+    var totalTB = 5;
+    var usedTB = (totalTB * pct / 100).toFixed(1);
+    $('#usedSize').textContent = usedTB;
+    usageSlider.value = pct;
+    usageValueEl.textContent = pct + '%';
+  }
+
+  usageSlider.addEventListener('input', function(e) { updateUsage(parseInt(e.target.value)); });
+  function setPreset(pct) { updateUsage(pct); }
+
+  // ============================================================
+  // Unlimited toggles
+  // ============================================================
+  function toggleUnlimited(type) {
+    if (type === 'volume') {
+      state.unlimitedVolume = !state.unlimitedVolume;
+      $('#toggleUnlimitedVolume').classList.toggle('on', state.unlimitedVolume);
+      $('#sizeDivider').style.display = state.unlimitedVolume ? 'none' : '';
+      $('#totalSize').style.display = state.unlimitedVolume ? 'none' : '';
+      $('#totalUnit').style.display = state.unlimitedVolume ? 'none' : '';
+      $('#progressWrap').style.display = state.unlimitedVolume ? 'none' : '';
+      $('#progressText').style.display = state.unlimitedVolume ? 'none' : '';
+    }
+    if (type === 'license') {
+      state.unlimitedLicense = !state.unlimitedLicense;
+      $('#toggleUnlimitedLicense').classList.toggle('on', state.unlimitedLicense);
+      $('#userDivider').style.display = state.unlimitedLicense ? 'none' : '';
+      $('#userTotal').style.display = state.unlimitedLicense ? 'none' : '';
+      $('#userTotalUnit').style.display = state.unlimitedLicense ? 'none' : '';
+    }
+  }
+
+  function toggleSharedBox() {
+    state.noSharedBox = !state.noSharedBox;
+    $('#toggleNoSharedBox').classList.toggle('on', state.noSharedBox);
+    $('#sharedBoxRow').classList.toggle('hidden', state.noSharedBox);
+  }
+
+  // ============================================================
+  // Sidebar minify
+  // ============================================================
+  function toggleSidebar() { sidebar.classList.toggle('minified'); }
+  $('#sidebarToggle').addEventListener('click', toggleSidebar);
+
+  function demoShowWarning() {
+    var totalTB = 5;
+    var usedTB = (totalTB * state.percentage / 100).toFixed(1);
+    $('#ocUsageText').textContent = usedTB + 'TB / ' + totalTB + 'TB (' + state.percentage + '%)';
+    $('#ocOverlay').classList.add('visible');
+  }
+
+  // ============================================================
+  // Over-Capacity Warning Modal
+  // ============================================================
+  function showOverCapacityWarning() {
+    if (state.unlimitedVolume) return;
+    if (state.percentage < 100) return;
+    if (sessionStorage.getItem('ocWarningShown') === '1') return;
+    var totalTB = 5;
+    var usedTB = (totalTB * state.percentage / 100).toFixed(1);
+    $('#ocUsageText').textContent = usedTB + 'TB / ' + totalTB + 'TB (' + state.percentage + '%)';
+    $('#ocOverlay').classList.add('visible');
+    sessionStorage.setItem('ocWarningShown', '1');
+  }
+
+  function hideOverCapacityWarning() { $('#ocOverlay').classList.remove('visible'); }
+  $('#ocConfirmBtn').addEventListener('click', hideOverCapacityWarning);
+  $('#ocOverlay').addEventListener('click', function(e) { if (e.target === $('#ocOverlay')) hideOverCapacityWarning(); });
+
+  // ============================================================
+  // Language Switching
+  // ============================================================
+  document.querySelectorAll('#langToggle .lang-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#langToggle .lang-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      applyLanguage(btn.dataset.lang);
+    });
+  });
+
+  function applyLanguage(lang) {
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+      var code = el.getAttribute('data-i18n');
+      var seq = el.getAttribute('data-i18n-seq');
+      var data = null;
+      if (code && I18N_EXISTING[code]) {
+        data = I18N_EXISTING[code];
+      } else if (seq && I18N_NEW[parseInt(seq)]) {
+        data = I18N_NEW[parseInt(seq)];
+      }
+      if (data && data[lang]) {
+        if (el.innerHTML.indexOf('<br>') !== -1) {
+          el.innerHTML = data[lang].replace(/\n/g, '<br>');
+        } else {
+          el.textContent = data[lang];
+        }
+      }
+    });
+  }
+
+  // ============================================================
+  // i18n Resource Manager
+  // ============================================================
+  (function() {
+    var toggleBtn = document.getElementById('i18n-toggle');
+    var panel = document.getElementById('i18n-panel');
+    var listEl = document.getElementById('i18n-list');
+    var checkAllEl = document.getElementById('i18n-check-all');
+    var filterEl = document.getElementById('i18n-filter');
+    var downloadBtn = document.getElementById('i18n-download');
+    var countEl = document.getElementById('i18n-selected-count');
+    var isActive = false;
+
+    toggleBtn.addEventListener('click', function() {
+      isActive = !isActive;
+      document.body.classList.toggle('i18n-active', isActive);
+      toggleBtn.classList.toggle('active', isActive);
+      panel.style.display = isActive ? 'flex' : 'none';
+      if (isActive) { buildResourceList(); }
+    });
+
+    function buildResourceList() {
+      var elements = document.querySelectorAll('[data-i18n]');
+      var filter = filterEl.value;
+      var seen = {};
+      listEl.innerHTML = '';
+
+      elements.forEach(function(el) {
+        var code = el.getAttribute('data-i18n');
+        var status = el.getAttribute('data-i18n-status');
+        var seq = el.getAttribute('data-i18n-seq');
+
+        // dedup key
+        var key = code ? code : ('seq-' + seq);
+        if (seen[key]) return;
+        seen[key] = true;
+
+        // filter
+        if (filter !== 'all' && filter !== status) return;
+
+        // get text
+        var text = el.textContent.trim().substring(0, 40);
+        var displayCode = code || ('NEW #' + seq);
+
+        var item = document.createElement('div');
+        item.className = 'i18n-panel__item';
+        item.setAttribute('data-key', key);
+        item.setAttribute('data-status', status);
+        item.setAttribute('data-seq', seq || '');
+        item.setAttribute('data-code', code || '');
+
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.addEventListener('change', updateSelectedCount);
+
+        var codeSpan = document.createElement('span');
+        codeSpan.className = 'i18n-panel__item-code';
+        codeSpan.textContent = displayCode;
+
+        var textSpan = document.createElement('span');
+        textSpan.className = 'i18n-panel__item-text';
+        textSpan.textContent = text;
+
+        var badge = document.createElement('span');
+        badge.className = 'i18n-panel__item-badge ' + status;
+        badge.textContent = status === 'existing' ? '既存' : '新規';
+
+        item.appendChild(cb);
+        item.appendChild(codeSpan);
+        item.appendChild(textSpan);
+        item.appendChild(badge);
+
+        // Click to scroll and highlight
+        item.addEventListener('click', function(e) {
+          if (e.target === cb) return;
+          var targetEl = document.querySelector('[data-i18n="' + (code || '') + '"]' +
+            (seq ? '[data-i18n-seq="' + seq + '"]' : ''));
+          if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            targetEl.style.outline = '2px solid var(--orange-600)';
+            setTimeout(function() { targetEl.style.outline = ''; }, 1500);
+          }
+        });
+
+        listEl.appendChild(item);
+      });
+
+      updateSelectedCount();
+    }
+
+    filterEl.addEventListener('change', buildResourceList);
+
+    checkAllEl.addEventListener('change', function() {
+      var checked = checkAllEl.checked;
+      listEl.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+        cb.checked = checked;
+      });
+      updateSelectedCount();
+    });
+
+    function updateSelectedCount() {
+      var checked = listEl.querySelectorAll('input[type="checkbox"]:checked');
+      countEl.textContent = checked.length + '個 選択';
+      downloadBtn.disabled = checked.length === 0;
+    }
+
+    // CSV Download
+    downloadBtn.addEventListener('click', function() {
+      var checkedItems = listEl.querySelectorAll('.i18n-panel__item');
+      var selectedLangs = [];
+      document.querySelectorAll('input[name="i18n-lang"]:checked').forEach(function(cb) {
+        selectedLangs.push(cb.value);
+      });
+      if (selectedLangs.length === 0) {
+        alert('言語を1つ以上選択してください。');
+        return;
+      }
+
+      var activeLang = document.querySelector('#langToggle .lang-btn.active');
+      var currentLang = activeLang ? activeLang.dataset.lang : 'ja';
+
+      // Build CSV
+      var headers = ['term', 'context'];
+      selectedLangs.forEach(function(l) { headers.push(l); });
+      var rows = [headers.join(',')];
+
+      checkedItems.forEach(function(item) {
+        var cb = item.querySelector('input[type="checkbox"]');
+        if (!cb.checked) return;
+
+        var code = item.getAttribute('data-code');
+        var status = item.getAttribute('data-status');
+        var seq = item.getAttribute('data-seq');
+
+        var term = code || (seq ? 'NEW_' + seq : '');
+        var context = 'mockup';
+        var data = null;
+
+        if (status === 'existing' && code) {
+          data = I18N_EXISTING[code];
+        } else if (seq) {
+          data = I18N_NEW[parseInt(seq)];
+        }
+
+        var cols = [csvEscape(term), csvEscape(context)];
+        selectedLangs.forEach(function(l) {
+          cols.push(csvEscape(data && data[l] ? data[l] : ''));
+        });
+        rows.push(cols.join(','));
+      });
+
+      var csvContent = '\uFEFF' + rows.join('\n');
+      var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'i18n_resources_' + new Date().toISOString().slice(0,10).replace(/-/g, '') + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    function csvEscape(val) {
+      if (!val) return '""';
+      var str = String(val);
+      if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+  })();
+
+  // ============================================================
+  // Init
+  // ============================================================
+  function init() {
+    updateToggleState();
+    updateUsage(state.percentage);
+    var now = new Date();
+    var y = now.getFullYear();
+    var m = String(now.getMonth() + 1).padStart(2, '0');
+    var d = String(now.getDate()).padStart(2, '0');
+    var h = String(now.getHours()).padStart(2, '0');
+    var min = String(now.getMinutes()).padStart(2, '0');
+    $('#updatedTime').textContent = y + '.' + m + '.' + d + ' ' + h + ':' + min;
+    showOverCapacityWarning();
+  }
+
+  init();
+</script>
+
+<!--
+  ## Component Mapping (Mockup -> Next.js)
+
+  | Mockup Element | Next.js Component | Props |
+  |----------------|-------------------|-------|
+  | .sidebar | components/layout/ManagerSidebar.tsx | navigation, collapsed |
+  | .company-status | components/manager/CompanyStatus.tsx | data, isOpen, onToggle |
+  | .cs-item | components/manager/StatusItem.tsx | label, value, icon |
+  | .cs-progress | components/ui/ProgressBar.tsx | percentage, level |
+  | .oc-modal | components/manager/OverCapacityModal.tsx | usage, onConfirm |
+  | .demo-panel | (dev-only) not for production | - |
+
+  ## i18n Resource Summary
+
+  | seq | context | ko | ja | en | status |
+  |-----|---------|----|----|-----|--------|
+  | 1 | Header title | 사용상황 | 使用状況 | Usage Status | NEW |
+  | 2 | User count label | 사용자 수 | ユーザー数 | User Count | NEW |
+  | 3 | Unit: persons | 명 | 名 | users | NEW |
+  | 4 | Shared Box label | Shared Box 폴더 | Shared Box フォルダ | Shared Box Folders | NEW |
+  | 5 | Unit: items | 개 | 個 | folders | NEW |
+  | 6 | Storage label | 사용 용량 | 使用容量 | Storage Usage | NEW |
+  | 7 | Over capacity badge | 용량 초과 | 容量超過 | Over Capacity | NEW |
+  | 8 | As of | 기준 | 基準 | As of | NEW |
+  | 9 | User management btn | 사용자 관리 | ユーザー管理 | User Management | NEW |
+  | 10 | Modal title | 용량 초과 안내 | 容量超過のお知らせ | Storage Over Capacity Notice | NEW |
+  | 11 | Modal body | (see i18n data) | (see i18n data) | (see i18n data) | NEW |
+  | co.100001 | Confirm button | 확인 | OK | OK | EXISTING |
+-->
+</body>
+</html>
